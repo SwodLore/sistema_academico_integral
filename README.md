@@ -56,3 +56,13 @@ npm run dev
 ```
 
 El frontend corre en `http://localhost:5173`
+
+## Credenciales de prueba
+
+Al iniciar el backend por primera vez se crea automaticamente un usuario de prueba:
+
+| Campo | Valor |
+|-------|-------|
+| Correo | admin@test.com |
+| Contrasena | 123456 |
+| Rol | ADMINISTRADOR |
