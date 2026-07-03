@@ -74,8 +74,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-neutral-900">Sistema Academico Integral</h1>
-          <p className="text-sm text-neutral-500">Universidad Nacional del Centro del Peru</p>
+          <h1 className="text-2xl font-bold text-neutral-900">Sistema Academico Integral</h1> 
         </div>
 
         <Card>
