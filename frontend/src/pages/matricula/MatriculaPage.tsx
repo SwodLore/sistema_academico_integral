@@ -46,6 +46,7 @@ function getMensajeError(err: unknown): string {
 export default function MatriculaPage() {
   const [cargando, setCargando] = useState(true)
   const [enviando, setEnviando] = useState(false)
+  const [descargando, setDescargando] = useState(false)
   const [matricula, setMatricula] = useState<Matricula | null>(null)
   const [cursosMatricula, setCursosMatricula] = useState<CursoDisponible[]>([])
   const [oferta, setOferta] = useState<CursosDisponibles | null>(null)
@@ -102,6 +103,26 @@ export default function MatriculaPage() {
       toast.error(getMensajeError(err))
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function descargarFicha() {
+    if (!matricula) return
+    setDescargando(true)
+    try {
+      const res = await api.get<Blob>(`/matriculas/${matricula.id}/ficha`, {
+        responseType: 'blob',
+      })
+      const url = URL.createObjectURL(res.data)
+      const enlace = document.createElement('a')
+      enlace.href = url
+      enlace.download = `ficha_${matricula.estudiante.codigoEstudiante}_${matricula.periodo.codigo}.pdf`
+      enlace.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error(getMensajeError(err))
+    } finally {
+      setDescargando(false)
     }
   }
 
@@ -167,6 +188,10 @@ export default function MatriculaPage() {
               <p className="text-sm text-neutral-600">
                 Total: {cursosMatricula.reduce((t, c) => t + c.creditos, 0)} creditos
               </p>
+
+              <Button className="w-full" disabled={descargando} onClick={descargarFicha}>
+                {descargando ? 'Descargando...' : 'Descargar ficha (PDF)'}
+              </Button>
             </CardContent>
           </Card>
         </div>

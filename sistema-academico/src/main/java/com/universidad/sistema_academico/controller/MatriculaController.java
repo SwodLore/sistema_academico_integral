@@ -6,6 +6,8 @@ import com.universidad.sistema_academico.entity.Usuario;
 import com.universidad.sistema_academico.service.MatriculaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,6 +47,25 @@ public class MatriculaController {
             body.put("matricula", matricula.get());
             body.put("cursos", matriculaService.cursosDeMatricula(matricula.get()));
             return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/ficha")
+    @PreAuthorize("hasRole('ESTUDIANTE')")
+    public ResponseEntity<?> ficha(@AuthenticationPrincipal Usuario usuario, @PathVariable Long id) {
+        try {
+            Matricula matricula = matriculaService.matriculaDelEstudiante(usuario, id);
+            byte[] pdf = matriculaService.fichaPdf(matricula);
+
+            String nombreArchivo = "ficha_" + matricula.getEstudiante().getCodigoEstudiante()
+                    + "_" + matricula.getPeriodo().getCodigo() + ".pdf";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+                    .body(pdf);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

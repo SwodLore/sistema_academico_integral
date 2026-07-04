@@ -37,6 +37,9 @@ public class MatriculaService {
     @Autowired
     private HorarioRepository horarioRepository;
 
+    @Autowired
+    private FichaPdfService fichaPdfService;
+
     public CursosDisponiblesResponse cursosDisponibles(Usuario usuario) {
         Estudiante estudiante = buscarEstudiante(usuario);
         PeriodoAcademico periodo = periodoActivo();
@@ -128,6 +131,21 @@ public class MatriculaService {
         }
 
         return matricula;
+    }
+
+    public Matricula matriculaDelEstudiante(Usuario usuario, Long matriculaId) {
+        Estudiante estudiante = buscarEstudiante(usuario);
+        Matricula matricula = matriculaRepository.findById(matriculaId)
+                .orElseThrow(() -> new RuntimeException("La matricula no existe"));
+
+        if (!matricula.getEstudiante().getId().equals(estudiante.getId())) {
+            throw new RuntimeException("No tienes acceso a esta matricula");
+        }
+        return matricula;
+    }
+
+    public byte[] fichaPdf(Matricula matricula) {
+        return fichaPdfService.generar(matricula, cursosDeMatricula(matricula));
     }
 
     private Estudiante buscarEstudiante(Usuario usuario) {
