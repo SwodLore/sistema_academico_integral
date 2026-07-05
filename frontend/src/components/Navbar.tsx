@@ -41,7 +41,6 @@ export default function Navbar() {
     }
     if (user.rol === 'ADMINISTRADOR' || user.rol === 'DIRECCION') {
       return [
-        { to: '/cursos', label: 'Cursos', icon: BookOpen },
         { to: '/admin', label: 'Administración', icon: LayoutDashboard },
       ]
     }

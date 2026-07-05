@@ -1,6 +1,7 @@
 package com.universidad.sistema_academico.controller;
 
 import com.universidad.sistema_academico.dto.SolicitudMatriculaRequest;
+import com.universidad.sistema_academico.entity.EstadoMatricula;
 import com.universidad.sistema_academico.entity.Matricula;
 import com.universidad.sistema_academico.entity.Usuario;
 import com.universidad.sistema_academico.service.MatriculaService;
@@ -24,6 +25,29 @@ public class MatriculaController {
 
     @Autowired
     private MatriculaService matriculaService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> listar(@RequestParam(required = false) EstadoMatricula estado,
+                                    @RequestParam(required = false) Integer anio,
+                                    @RequestParam(required = false) String semestre,
+                                    @RequestParam(required = false) Long especialidadId) {
+        try {
+            return ResponseEntity.ok(matriculaService.listar(estado, anio, semestre, especialidadId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/cursos")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> cursos(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(matriculaService.cursosDeMatricula(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 
     @GetMapping("/cursos-disponibles")
     @PreAuthorize("hasRole('ESTUDIANTE')")

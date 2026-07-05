@@ -26,7 +26,7 @@ const router = createBrowserRouter([
   },
 
   {
-    element: <ProtectedRoute roles={['DOCENTE', 'ADMINISTRADOR', 'DIRECCION']} />,
+    element: <ProtectedRoute roles={['DOCENTE']} />,
     children: [
       { path: '/cursos', element: <CursosPage /> },
     ],

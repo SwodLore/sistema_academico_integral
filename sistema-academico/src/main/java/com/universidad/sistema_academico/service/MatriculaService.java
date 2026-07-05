@@ -133,6 +133,24 @@ public class MatriculaService {
         return matricula;
     }
 
+    public List<Matricula> listar(EstadoMatricula estado, Integer anio, String semestre, Long especialidadId) {
+        List<Matricula> matriculas = estado != null
+                ? matriculaRepository.findByEstadoOrderByFechaSolicitudAsc(estado)
+                : matriculaRepository.findAll();
+
+        return matriculas.stream()
+                .filter(m -> anio == null || m.getPeriodo().getAnio().equals(anio))
+                .filter(m -> semestre == null || m.getPeriodo().getSemestre().equals(semestre))
+                .filter(m -> especialidadId == null || m.getEstudiante().getEspecialidad().getId().equals(especialidadId))
+                .toList();
+    }
+
+    public List<CursoDisponibleResponse> cursosDeMatricula(Long matriculaId) {
+        Matricula matricula = matriculaRepository.findById(matriculaId)
+                .orElseThrow(() -> new RuntimeException("La matricula no existe"));
+        return cursosDeMatricula(matricula);
+    }
+
     public Matricula matriculaDelEstudiante(Usuario usuario, Long matriculaId) {
         Estudiante estudiante = buscarEstudiante(usuario);
         Matricula matricula = matriculaRepository.findById(matriculaId)
