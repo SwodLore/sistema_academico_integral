@@ -3,12 +3,14 @@ package com.universidad.sistema_academico.service;
 import com.universidad.sistema_academico.dto.CursoDisponibleResponse;
 import com.universidad.sistema_academico.dto.CursosDisponiblesResponse;
 import com.universidad.sistema_academico.dto.SolicitudMatriculaRequest;
+import com.universidad.sistema_academico.dto.ValidarMatriculaRequest;
 import com.universidad.sistema_academico.entity.*;
 import com.universidad.sistema_academico.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +145,32 @@ public class MatriculaService {
                 .filter(m -> semestre == null || m.getPeriodo().getSemestre().equals(semestre))
                 .filter(m -> especialidadId == null || m.getEstudiante().getEspecialidad().getId().equals(especialidadId))
                 .toList();
+    }
+
+    @Transactional
+    public Matricula validar(Usuario admin, Long matriculaId, ValidarMatriculaRequest request) {
+        Matricula matricula = matriculaRepository.findById(matriculaId)
+                .orElseThrow(() -> new RuntimeException("La matricula no existe"));
+
+        if (matricula.getEstado() != EstadoMatricula.PENDIENTE) {
+            throw new RuntimeException("La solicitud ya fue procesada");
+        }
+
+        if (request.getAprobado()) {
+            matricula.setEstado(EstadoMatricula.VALIDADA);
+            matricula.setObservacion(null);
+        } else {
+            if (request.getObservacion() == null || request.getObservacion().isBlank()) {
+                throw new RuntimeException("Debes indicar el motivo del rechazo");
+            }
+            matricula.setEstado(EstadoMatricula.RECHAZADA);
+            matricula.setObservacion(request.getObservacion());
+        }
+
+        matricula.setFechaValidacion(LocalDateTime.now());
+        matricula.setValidadaPor(admin);
+
+        return matriculaRepository.save(matricula);
     }
 
     public List<CursoDisponibleResponse> cursosDeMatricula(Long matriculaId) {

@@ -37,6 +37,9 @@ export default function AdminPage() {
   const [detalle, setDetalle] = useState<Matricula | null>(null)
   const [cursos, setCursos] = useState<CursoDetalle[]>([])
   const [cargandoCursos, setCargandoCursos] = useState(false)
+  const [procesando, setProcesando] = useState(false)
+  const [rechazando, setRechazando] = useState(false)
+  const [motivo, setMotivo] = useState('')
 
   async function cargar() {
     setCargando(true)
@@ -75,6 +78,8 @@ export default function AdminPage() {
 
   async function verCursos(solicitud: Matricula) {
     setDetalle(solicitud)
+    setRechazando(false)
+    setMotivo('')
     setCargandoCursos(true)
     try {
       const res = await api.get<CursoDetalle[]>(`/matriculas/${solicitud.id}/cursos`)
@@ -84,6 +89,30 @@ export default function AdminPage() {
       setDetalle(null)
     } finally {
       setCargandoCursos(false)
+    }
+  }
+
+  function cerrarDetalle() {
+    setDetalle(null)
+    setRechazando(false)
+    setMotivo('')
+  }
+
+  async function validar(aprobado: boolean) {
+    if (!detalle) return
+    setProcesando(true)
+    try {
+      await api.put(`/matriculas/${detalle.id}/validar`, {
+        aprobado,
+        observacion: aprobado ? null : motivo,
+      })
+      toast.success(aprobado ? 'Matricula aprobada' : 'Matricula rechazada')
+      cerrarDetalle()
+      cargar()
+    } catch (err) {
+      toast.error(getMensajeError(err))
+    } finally {
+      setProcesando(false)
     }
   }
 
@@ -220,7 +249,7 @@ export default function AdminPage() {
         </Card>
       </div>
 
-      <Dialog open={detalle !== null} onOpenChange={(abierto) => !abierto && setDetalle(null)}>
+      <Dialog open={detalle !== null} onOpenChange={(abierto) => !abierto && cerrarDetalle()}>
         <DialogContent>
           <DialogTitle>Cursos de la solicitud</DialogTitle>
           <DialogDescription>
@@ -256,6 +285,46 @@ export default function AdminPage() {
               </>
             )}
           </div>
+
+          {!cargandoCursos && (
+            <div className="mt-5 border-t pt-4">
+              {rechazando ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700">
+                    Motivo del rechazo
+                  </label>
+                  <textarea
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    rows={3}
+                    value={motivo}
+                    onChange={(e) => setMotivo(e.target.value)}
+                    placeholder="Indica por que se rechaza la solicitud"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="destructive"
+                      disabled={procesando || motivo.trim() === ''}
+                      onClick={() => validar(false)}
+                    >
+                      {procesando ? 'Rechazando...' : 'Confirmar rechazo'}
+                    </Button>
+                    <Button variant="outline" disabled={procesando} onClick={() => setRechazando(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button disabled={procesando} onClick={() => validar(true)}>
+                    {procesando ? 'Procesando...' : 'Aprobar'}
+                  </Button>
+                  <Button variant="destructive" disabled={procesando} onClick={() => setRechazando(true)}>
+                    Rechazar
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

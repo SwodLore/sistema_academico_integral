@@ -1,6 +1,7 @@
 package com.universidad.sistema_academico.controller;
 
 import com.universidad.sistema_academico.dto.SolicitudMatriculaRequest;
+import com.universidad.sistema_academico.dto.ValidarMatriculaRequest;
 import com.universidad.sistema_academico.entity.EstadoMatricula;
 import com.universidad.sistema_academico.entity.Matricula;
 import com.universidad.sistema_academico.entity.Usuario;
@@ -108,6 +109,25 @@ public class MatriculaController {
 
         try {
             return ResponseEntity.ok(matriculaService.solicitar(usuario, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/validar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> validar(@AuthenticationPrincipal Usuario usuario,
+                                     @PathVariable Long id,
+                                     @Valid @RequestBody ValidarMatriculaRequest request,
+                                     BindingResult result) {
+        if (result.hasErrors()) {
+            Map<String, String> errores = new HashMap<>();
+            result.getFieldErrors().forEach(e -> errores.put(e.getField(), e.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errores);
+        }
+
+        try {
+            return ResponseEntity.ok(matriculaService.validar(usuario, id, request));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
