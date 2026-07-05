@@ -8,5 +8,6 @@ export interface Pago {
   fechaPago: string
   metodoPago?: string
   numeroRecibo?: string
+  comprobanteUrl?: string | null
   registradoPor: Usuario
 }

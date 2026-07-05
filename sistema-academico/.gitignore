@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Archivos subidos (comprobantes de pago) ###
+uploads/

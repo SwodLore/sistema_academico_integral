@@ -9,7 +9,9 @@ import com.universidad.sistema_academico.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,6 +43,12 @@ public class MatriculaService {
 
     @Autowired
     private FichaPdfService fichaPdfService;
+
+    @Autowired
+    private PagoRepository pagoRepository;
+
+    @Autowired
+    private AlmacenamientoService almacenamientoService;
 
     public CursosDisponiblesResponse cursosDisponibles(Usuario usuario) {
         Estudiante estudiante = buscarEstudiante(usuario);
@@ -173,10 +181,53 @@ public class MatriculaService {
         return matriculaRepository.save(matricula);
     }
 
+    @Transactional
+    public Pago registrarPago(Usuario admin, Long matriculaId, BigDecimal monto, String numeroRecibo,
+                              String metodoPago, MultipartFile comprobante) {
+        Matricula matricula = matriculaRepository.findById(matriculaId)
+                .orElseThrow(() -> new RuntimeException("La matricula no existe"));
+
+        if (matricula.getEstado() != EstadoMatricula.VALIDADA) {
+            throw new RuntimeException("Solo se puede registrar el pago de una matricula validada");
+        }
+
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El monto debe ser mayor a cero");
+        }
+
+        if (numeroRecibo == null || numeroRecibo.isBlank()) {
+            throw new RuntimeException("El numero de recibo es obligatorio");
+        }
+
+        if (pagoRepository.findByNumeroRecibo(numeroRecibo).isPresent()) {
+            throw new RuntimeException("El numero de recibo ya esta registrado");
+        }
+
+        Pago pago = new Pago();
+        pago.setMatricula(matricula);
+        pago.setMonto(monto);
+        pago.setNumeroRecibo(numeroRecibo);
+        pago.setMetodoPago(metodoPago);
+        pago.setRegistradoPor(admin);
+
+        if (comprobante != null && !comprobante.isEmpty()) {
+            pago.setComprobanteUrl(almacenamientoService.guardarComprobante(comprobante));
+        }
+
+        matricula.setEstado(EstadoMatricula.PAGADA);
+        matriculaRepository.save(matricula);
+
+        return pagoRepository.save(pago);
+    }
+
     public List<CursoDisponibleResponse> cursosDeMatricula(Long matriculaId) {
         Matricula matricula = matriculaRepository.findById(matriculaId)
                 .orElseThrow(() -> new RuntimeException("La matricula no existe"));
         return cursosDeMatricula(matricula);
+    }
+
+    public Pago pagoDeMatricula(Long matriculaId) {
+        return pagoRepository.findByMatriculaId(matriculaId).orElse(null);
     }
 
     public Matricula matriculaDelEstudiante(Usuario usuario, Long matriculaId) {

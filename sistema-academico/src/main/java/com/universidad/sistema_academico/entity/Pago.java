@@ -31,6 +31,8 @@ public class Pago {
     @Column(unique = true, length = 20)
     private String numeroRecibo;
 
+    private String comprobanteUrl;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "registrado_por_id")
     private Usuario registradoPor;

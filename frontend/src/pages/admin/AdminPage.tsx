@@ -7,10 +7,11 @@ import {
 } from '@tanstack/react-table'
 import { toast } from 'sonner'
 import { api } from '@/api/axios'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
-import type { Matricula } from '@/types'
+import { ESTADO_MATRICULA_LABELS, type EstadoMatricula, type Matricula, type Pago } from '@/types'
 
 interface CursoDetalle {
   cursoId: number
@@ -22,6 +23,19 @@ interface CursoDetalle {
   horarios: string[]
 }
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api'
+const SERVER_ORIGIN = API_URL.replace(/\/api\/?$/, '')
+
+const ESTADO_VARIANTS: Record<EstadoMatricula, 'warning' | 'info' | 'destructive' | 'success'> = {
+  PENDIENTE: 'warning',
+  VALIDADA: 'info',
+  RECHAZADA: 'destructive',
+  PAGADA: 'success',
+  MATRICULADO: 'success',
+}
+
+const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'VALIDADA', 'PAGADA']
+
 function getMensajeError(err: unknown): string {
   const error = err as { response?: { data?: { message?: string } } }
   return error.response?.data?.message ?? 'Ocurrio un error, intenta de nuevo'
@@ -32,8 +46,8 @@ const columnHelper = createColumnHelper<Matricula>()
 export default function AdminPage() {
   const [cargando, setCargando] = useState(true)
   const [solicitudes, setSolicitudes] = useState<Matricula[]>([])
+  const [filtroEstado, setFiltroEstado] = useState<EstadoMatricula>('PENDIENTE')
   const [filtroEspecialidad, setFiltroEspecialidad] = useState('')
-  const [filtroPeriodo, setFiltroPeriodo] = useState('')
   const [detalle, setDetalle] = useState<Matricula | null>(null)
   const [cursos, setCursos] = useState<CursoDetalle[]>([])
   const [cargandoCursos, setCargandoCursos] = useState(false)
@@ -41,11 +55,17 @@ export default function AdminPage() {
   const [rechazando, setRechazando] = useState(false)
   const [motivo, setMotivo] = useState('')
 
+  const [monto, setMonto] = useState('')
+  const [numeroRecibo, setNumeroRecibo] = useState('')
+  const [metodoPago, setMetodoPago] = useState('EFECTIVO')
+  const [comprobante, setComprobante] = useState<File | null>(null)
+  const [pago, setPago] = useState<Pago | null>(null)
+
   async function cargar() {
     setCargando(true)
     try {
       const res = await api.get<Matricula[]>('/matriculas', {
-        params: { estado: 'PENDIENTE' },
+        params: { estado: filtroEstado },
       })
       setSolicitudes(res.data)
     } catch (err) {
@@ -57,33 +77,39 @@ export default function AdminPage() {
 
   useEffect(() => {
     cargar()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroEstado])
 
   const especialidades = useMemo(
     () => [...new Set(solicitudes.map((s) => s.estudiante.especialidad.nombre))],
     [solicitudes]
   )
-  const periodos = useMemo(
-    () => [...new Set(solicitudes.map((s) => s.periodo.codigo))],
-    [solicitudes]
-  )
 
   const filtradas = useMemo(
     () =>
-      solicitudes
-        .filter((s) => !filtroEspecialidad || s.estudiante.especialidad.nombre === filtroEspecialidad)
-        .filter((s) => !filtroPeriodo || s.periodo.codigo === filtroPeriodo),
-    [solicitudes, filtroEspecialidad, filtroPeriodo]
+      solicitudes.filter(
+        (s) => !filtroEspecialidad || s.estudiante.especialidad.nombre === filtroEspecialidad
+      ),
+    [solicitudes, filtroEspecialidad]
   )
 
-  async function verCursos(solicitud: Matricula) {
+  async function verDetalle(solicitud: Matricula) {
     setDetalle(solicitud)
     setRechazando(false)
     setMotivo('')
+    setMonto('')
+    setNumeroRecibo('')
+    setMetodoPago('EFECTIVO')
+    setComprobante(null)
+    setPago(null)
     setCargandoCursos(true)
     try {
       const res = await api.get<CursoDetalle[]>(`/matriculas/${solicitud.id}/cursos`)
       setCursos(res.data)
+      if (solicitud.estado === 'PAGADA') {
+        const resPago = await api.get<Pago | null>(`/matriculas/${solicitud.id}/pago`)
+        setPago(resPago.data)
+      }
     } catch (err) {
       toast.error(getMensajeError(err))
       setDetalle(null)
@@ -116,6 +142,27 @@ export default function AdminPage() {
     }
   }
 
+  async function registrarPago() {
+    if (!detalle) return
+    setProcesando(true)
+    try {
+      const form = new FormData()
+      form.append('monto', monto)
+      form.append('numeroRecibo', numeroRecibo)
+      form.append('metodoPago', metodoPago)
+      if (comprobante) form.append('comprobante', comprobante)
+
+      await api.post(`/matriculas/${detalle.id}/pago`, form)
+      toast.success('Pago registrado')
+      cerrarDetalle()
+      cargar()
+    } catch (err) {
+      toast.error(getMensajeError(err))
+    } finally {
+      setProcesando(false)
+    }
+  }
+
   const columnas = useMemo(
     () => [
       columnHelper.accessor((m) => `${m.estudiante.usuario.nombres} ${m.estudiante.usuario.apellidos}`, {
@@ -138,24 +185,21 @@ export default function AdminPage() {
         id: 'periodo',
         header: 'Periodo',
       }),
-      columnHelper.accessor((m) => m.fechaSolicitud, {
-        id: 'fecha',
-        header: 'Fecha de solicitud',
-        cell: (info) =>
-          new Date(info.getValue()).toLocaleDateString('es-PE', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
+      columnHelper.accessor((m) => m.estado, {
+        id: 'estado',
+        header: 'Estado',
+        cell: (info) => (
+          <Badge variant={ESTADO_VARIANTS[info.getValue()]}>
+            {ESTADO_MATRICULA_LABELS[info.getValue()]}
+          </Badge>
+        ),
       }),
       columnHelper.display({
         id: 'acciones',
         header: 'Acciones',
         cell: ({ row }) => (
-          <Button size="sm" variant="outline" onClick={() => verCursos(row.original)}>
-            Ver cursos
+          <Button size="sm" variant="outline" onClick={() => verDetalle(row.original)}>
+            Ver detalle
           </Button>
         ),
       }),
@@ -170,23 +214,36 @@ export default function AdminPage() {
   })
 
   const totalCreditos = cursos.reduce((t, c) => t + c.creditos, 0)
+  const montoValido = Number(monto) > 0
+  const puedePagar = montoValido && numeroRecibo.trim() !== ''
 
   return (
     <div className="min-h-screen bg-neutral-50 px-4 py-10">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Solicitudes de Matricula</h1>
-          <p className="text-sm text-neutral-500">Solicitudes pendientes de validacion</p>
+          <p className="text-sm text-neutral-500">Gestiona las solicitudes por estado</p>
         </div>
 
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <CardTitle className="text-lg">Pendientes ({filtradas.length})</CardTitle>
+                <CardTitle className="text-lg">
+                  {ESTADO_MATRICULA_LABELS[filtroEstado]} ({filtradas.length})
+                </CardTitle>
                 <CardDescription>Ordenadas de la mas antigua a la mas reciente</CardDescription>
               </div>
               <div className="flex gap-3">
+                <select
+                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm"
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value as EstadoMatricula)}
+                >
+                  {ESTADOS_FILTRO.map((estado) => (
+                    <option key={estado} value={estado}>{ESTADO_MATRICULA_LABELS[estado]}</option>
+                  ))}
+                </select>
                 <select
                   className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm"
                   value={filtroEspecialidad}
@@ -197,16 +254,6 @@ export default function AdminPage() {
                     <option key={esp} value={esp}>{esp}</option>
                   ))}
                 </select>
-                <select
-                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm"
-                  value={filtroPeriodo}
-                  onChange={(e) => setFiltroPeriodo(e.target.value)}
-                >
-                  <option value="">Todos los periodos</option>
-                  {periodos.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
               </div>
             </div>
           </CardHeader>
@@ -215,7 +262,7 @@ export default function AdminPage() {
               <p className="text-sm text-neutral-500 py-8 text-center">Cargando...</p>
             ) : filtradas.length === 0 ? (
               <p className="text-sm text-neutral-500 py-8 text-center">
-                No hay solicitudes pendientes.
+                No hay solicitudes en este estado.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -250,8 +297,8 @@ export default function AdminPage() {
       </div>
 
       <Dialog open={detalle !== null} onOpenChange={(abierto) => !abierto && cerrarDetalle()}>
-        <DialogContent>
-          <DialogTitle>Cursos de la solicitud</DialogTitle>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogTitle>Detalle de la solicitud</DialogTitle>
           <DialogDescription>
             {detalle &&
               `${detalle.estudiante.usuario.nombres} ${detalle.estudiante.usuario.apellidos} · ${detalle.periodo.codigo}`}
@@ -259,7 +306,7 @@ export default function AdminPage() {
 
           <div className="mt-4 space-y-2">
             {cargandoCursos ? (
-              <p className="text-sm text-neutral-500">Cargando cursos...</p>
+              <p className="text-sm text-neutral-500">Cargando...</p>
             ) : (
               <>
                 {cursos.map((curso) => (
@@ -286,13 +333,11 @@ export default function AdminPage() {
             )}
           </div>
 
-          {!cargandoCursos && (
+          {!cargandoCursos && detalle?.estado === 'PENDIENTE' && (
             <div className="mt-5 border-t pt-4">
               {rechazando ? (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-neutral-700">
-                    Motivo del rechazo
-                  </label>
+                  <label className="text-sm font-medium text-neutral-700">Motivo del rechazo</label>
                   <textarea
                     className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
                     rows={3}
@@ -322,6 +367,85 @@ export default function AdminPage() {
                     Rechazar
                   </Button>
                 </div>
+              )}
+            </div>
+          )}
+
+          {!cargandoCursos && detalle?.estado === 'VALIDADA' && (
+            <div className="mt-5 border-t pt-4 space-y-3">
+              <p className="text-sm font-medium text-neutral-700">Registrar pago</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-500">Monto (S/.)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                    value={monto}
+                    onChange={(e) => setMonto(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-500">Numero de recibo</label>
+                  <input
+                    type="text"
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                    value={numeroRecibo}
+                    onChange={(e) => setNumeroRecibo(e.target.value)}
+                    placeholder="REC-001"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-neutral-500">Metodo de pago</label>
+                <select
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                  value={metodoPago}
+                  onChange={(e) => setMetodoPago(e.target.value)}
+                >
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="TARJETA">Tarjeta</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-neutral-500">Comprobante (imagen, opcional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full text-sm"
+                  onChange={(e) => setComprobante(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <Button className="w-full" disabled={procesando || !puedePagar} onClick={registrarPago}>
+                {procesando ? 'Registrando...' : 'Registrar pago'}
+              </Button>
+            </div>
+          )}
+
+          {!cargandoCursos && detalle?.estado === 'PAGADA' && pago && (
+            <div className="mt-5 border-t pt-4 space-y-2">
+              <p className="text-sm font-medium text-neutral-700">Pago registrado</p>
+              <div className="text-sm text-neutral-600 space-y-1">
+                <p>Monto: S/. {pago.monto}</p>
+                <p>Recibo: {pago.numeroRecibo}</p>
+                {pago.metodoPago && <p>Metodo: {pago.metodoPago}</p>}
+              </div>
+              {pago.comprobanteUrl && (
+                <a
+                  href={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <img
+                    src={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
+                    alt="Comprobante de pago"
+                    className="mt-2 max-h-64 rounded-md border"
+                  />
+                </a>
               )}
             </div>
           )}

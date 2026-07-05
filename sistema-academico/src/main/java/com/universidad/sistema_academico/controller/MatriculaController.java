@@ -15,7 +15,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -109,6 +111,31 @@ public class MatriculaController {
 
         try {
             return ResponseEntity.ok(matriculaService.solicitar(usuario, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/pago")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> verPago(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(matriculaService.pagoDeMatricula(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/{id}/pago", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> registrarPago(@AuthenticationPrincipal Usuario usuario,
+                                           @PathVariable Long id,
+                                           @RequestParam BigDecimal monto,
+                                           @RequestParam String numeroRecibo,
+                                           @RequestParam(required = false) String metodoPago,
+                                           @RequestParam(required = false) MultipartFile comprobante) {
+        try {
+            return ResponseEntity.ok(matriculaService.registrarPago(usuario, id, monto, numeroRecibo, metodoPago, comprobante));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
