@@ -8,6 +8,7 @@ import NotasPage from '@/pages/notas/NotasPage'
 import RecordPage from '@/pages/record/RecordPage'
 import CertificadosPage from '@/pages/certificados/CertificadosPage'
 import AdminPage from '@/pages/admin/AdminPage'
+import UsuariosPage from '@/pages/admin/UsuariosPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute roles={['ADMINISTRADOR', 'DIRECCION']} />,
     children: [
       { path: '/admin', element: <AdminPage /> },
+      { path: '/admin/usuarios', element: <UsuariosPage /> },
     ],
   },
 

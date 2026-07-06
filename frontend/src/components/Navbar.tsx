@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { LogOut, BookOpen, Award, FileText, LayoutDashboard, User } from 'lucide-react'
+import { LogOut, BookOpen, Award, FileText, LayoutDashboard, Users, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -42,6 +42,7 @@ export default function Navbar() {
     if (user.rol === 'ADMINISTRADOR' || user.rol === 'DIRECCION') {
       return [
         { to: '/admin', label: 'Administración', icon: LayoutDashboard },
+        { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
       ]
     }
     return []
