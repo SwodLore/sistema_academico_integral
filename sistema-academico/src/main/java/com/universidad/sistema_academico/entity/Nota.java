@@ -26,6 +26,9 @@ public class Nota {
     private BigDecimal parcial2;
 
     @Column(precision = 4, scale = 2)
+    private BigDecimal practicas;
+
+    @Column(precision = 4, scale = 2)
     private BigDecimal notaFinal;
 
     @Column(precision = 4, scale = 2)

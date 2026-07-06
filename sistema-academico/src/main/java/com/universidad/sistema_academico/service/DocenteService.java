@@ -68,6 +68,7 @@ public class DocenteService {
             }
 
             cursosDTO.add(new CursoAsignadoDTO(
+                    asignacion.getId(),
                     curso.getId(),
                     curso.getCodigo(),
                     curso.getNombre(),

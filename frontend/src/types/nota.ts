@@ -7,6 +7,7 @@ export interface Nota {
   detalle: DetalleMatricula
   parcial1?: number | null
   parcial2?: number | null
+  practicas?: number | null
   notaFinal?: number | null
   promedio?: number | null
   estado: EstadoNota
