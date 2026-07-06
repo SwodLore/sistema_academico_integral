@@ -3,6 +3,7 @@ package com.universidad.sistema_academico.dto;
 import java.util.List;
 
 public class CursoAsignadoDTO {
+    private Long asignacionId;
     private Long cursoId;
     private String codigo;
     private String nombre;
@@ -13,7 +14,8 @@ public class CursoAsignadoDTO {
 
     public CursoAsignadoDTO() {}
 
-    public CursoAsignadoDTO(Long cursoId, String codigo, String nombre, String seccion, int creditos, int horasSemanales, List<HorarioDTO> horarios) {
+    public CursoAsignadoDTO(Long asignacionId, Long cursoId, String codigo, String nombre, String seccion, int creditos, int horasSemanales, List<HorarioDTO> horarios) {
+        this.asignacionId = asignacionId;
         this.cursoId = cursoId;
         this.codigo = codigo;
         this.nombre = nombre;
@@ -22,6 +24,9 @@ public class CursoAsignadoDTO {
         this.horasSemanales = horasSemanales;
         this.horarios = horarios;
     }
+
+    public Long getAsignacionId() { return asignacionId; }
+    public void setAsignacionId(Long asignacionId) { this.asignacionId = asignacionId; }
 
     public Long getCursoId() { return cursoId; }
     public void setCursoId(Long cursoId) { this.cursoId = cursoId; }

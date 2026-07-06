@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { api } from '@/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Calendar, Clock, MapPin, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BookOpen, Calendar, ClipboardList, Clock, MapPin, RefreshCw } from 'lucide-react'
 import type { PeriodoAcademico } from '@/types'
 
 interface HorarioDTO {
@@ -14,6 +16,7 @@ interface HorarioDTO {
 }
 
 interface CursoAsignado {
+  asignacionId: number
   cursoId: number
   codigo: string
   nombre: string
@@ -44,6 +47,7 @@ function getMensajeError(err: unknown): string {
 }
 
 export default function CursosPage() {
+  const navigate = useNavigate()
   const [cargandoPeriodos, setCargandoPeriodos] = useState(true)
   const [cargandoCarga, setCargandoCarga] = useState(false)
   const [periodos, setPeriodos] = useState<PeriodoAcademico[]>([])
@@ -302,6 +306,14 @@ export default function CursosPage() {
                     ))}
                   </div>
                 )}
+
+                <Button
+                  className="w-full mt-4 gap-2"
+                  onClick={() => navigate(`/cursos/${curso.asignacionId}/notas`)}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  Registrar Notas
+                </Button>
               </CardContent>
             </Card>
           ))}
