@@ -10,6 +10,7 @@ import RecordPage from '@/pages/record/RecordPage'
 import CertificadosPage from '@/pages/certificados/CertificadosPage'
 import AdminPage from '@/pages/admin/AdminPage'
 import UsuariosPage from '@/pages/admin/UsuariosPage'
+import FacultadesEspecialidadesPage from '@/pages/admin/FacultadesEspecialidadesPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin', element: <AdminPage /> },
       { path: '/admin/usuarios', element: <UsuariosPage /> },
+      { path: '/admin/facultades-especialidades', element: <FacultadesEspecialidadesPage /> },
     ],
   },
 
