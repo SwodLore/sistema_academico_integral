@@ -7,6 +7,7 @@ import com.lowagie.text.pdf.PdfWriter;
 import com.universidad.sistema_academico.dto.CursoDisponibleResponse;
 import com.universidad.sistema_academico.entity.Estudiante;
 import com.universidad.sistema_academico.entity.Matricula;
+import com.universidad.sistema_academico.entity.Pago;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -86,6 +87,115 @@ public class FichaPdfService {
         } catch (DocumentException e) {
             throw new RuntimeException("No se pudo generar la ficha en PDF");
         }
+    }
+
+    public byte[] generarOficial(Matricula matricula, List<CursoDisponibleResponse> cursos, Pago pago) {
+        try {
+            Document documento = new Document(PageSize.A4, 50, 50, 50, 50);
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            PdfWriter.getInstance(documento, salida);
+            documento.open();
+
+            Estudiante estudiante = matricula.getEstudiante();
+            String facultad = estudiante.getEspecialidad().getFacultad().getNombre();
+
+            Paragraph universidad = new Paragraph("Universidad Nacional del Centro del Peru", TITULO);
+            universidad.setAlignment(Element.ALIGN_CENTER);
+            documento.add(universidad);
+
+            Paragraph nombreFacultad = new Paragraph(facultad, NORMAL);
+            nombreFacultad.setAlignment(Element.ALIGN_CENTER);
+            documento.add(nombreFacultad);
+
+            Paragraph titulo = new Paragraph("FICHA OFICIAL DE MATRICULA", SUBTITULO);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingBefore(8);
+            documento.add(titulo);
+
+            Paragraph ficha = new Paragraph("N° " + matricula.getNumeroFicha() + "  -  Periodo " + matricula.getPeriodo().getCodigo(), NEGRITA);
+            ficha.setAlignment(Element.ALIGN_CENTER);
+            ficha.setSpacingAfter(18);
+            documento.add(ficha);
+
+            PdfPTable datos = new PdfPTable(2);
+            datos.setWidthPercentage(100);
+            datos.setSpacingAfter(12);
+            agregarDato(datos, "Estudiante", estudiante.getUsuario().getNombres() + " " + estudiante.getUsuario().getApellidos());
+            agregarDato(datos, "Codigo", estudiante.getCodigoEstudiante());
+            agregarDato(datos, "DNI", estudiante.getDni());
+            agregarDato(datos, "Especialidad", estudiante.getEspecialidad().getNombre());
+            agregarDato(datos, "Ciclo", String.valueOf(estudiante.getCicloActual()));
+            documento.add(datos);
+
+            PdfPTable tabla = new PdfPTable(new float[]{2, 5, 2, 4, 1.5f, 4});
+            tabla.setWidthPercentage(100);
+            agregarCabecera(tabla, "Codigo", "Curso", "Seccion", "Docente", "Cred.", "Horario");
+
+            int totalCreditos = 0;
+            for (CursoDisponibleResponse curso : cursos) {
+                agregarCelda(tabla, curso.getCodigo());
+                agregarCelda(tabla, curso.getNombre());
+                agregarCelda(tabla, curso.getSeccion());
+                agregarCelda(tabla, curso.getDocente());
+                agregarCelda(tabla, String.valueOf(curso.getCreditos()));
+                agregarCelda(tabla, String.join("\n", curso.getHorarios()));
+                totalCreditos += curso.getCreditos();
+            }
+            documento.add(tabla);
+
+            Paragraph total = new Paragraph("Total de creditos: " + totalCreditos, NEGRITA);
+            total.setSpacingBefore(10);
+            documento.add(total);
+
+            if (pago != null) {
+                PdfPTable datosPago = new PdfPTable(2);
+                datosPago.setWidthPercentage(100);
+                datosPago.setSpacingBefore(12);
+                agregarDato(datosPago, "Pago - Monto", "S/. " + pago.getMonto());
+                agregarDato(datosPago, "Pago - Recibo", pago.getNumeroRecibo());
+                if (pago.getMetodoPago() != null) {
+                    agregarDato(datosPago, "Pago - Metodo", pago.getMetodoPago());
+                }
+                documento.add(datosPago);
+            }
+
+            DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            PdfPTable fechas = new PdfPTable(2);
+            fechas.setWidthPercentage(100);
+            fechas.setSpacingBefore(8);
+            agregarDato(fechas, "Fecha de solicitud", matricula.getFechaSolicitud().format(formato));
+            if (matricula.getFechaValidacion() != null) {
+                agregarDato(fechas, "Fecha de validacion", matricula.getFechaValidacion().format(formato));
+            }
+            agregarDato(fechas, "Fecha de emision", LocalDateTime.now().format(formato));
+            documento.add(fechas);
+
+            documento.add(sello(matricula));
+
+            documento.close();
+            return salida.toByteArray();
+        } catch (DocumentException e) {
+            throw new RuntimeException("No se pudo generar la ficha oficial en PDF");
+        }
+    }
+
+    private PdfPTable sello(Matricula matricula) {
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        PdfPTable contenedor = new PdfPTable(1);
+        contenedor.setWidthPercentage(45);
+        contenedor.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        contenedor.setSpacingBefore(40);
+
+        String texto = "MATRICULA OFICIAL\nUNCP - FIS\n" + matricula.getNumeroFicha()
+                + "\n" + LocalDateTime.now().format(formato);
+        PdfPCell celda = new PdfPCell(new Phrase(texto, NEGRITA));
+        celda.setHorizontalAlignment(Element.ALIGN_CENTER);
+        celda.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        celda.setFixedHeight(80);
+        celda.setBorderWidth(2);
+        celda.setBorderColor(new Color(40, 40, 40));
+        contenedor.addCell(celda);
+        return contenedor;
     }
 
     private void agregarDato(PdfPTable tabla, String etiqueta, String valor) {

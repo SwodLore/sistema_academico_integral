@@ -245,6 +245,29 @@ public class MatriculaService {
         return fichaPdfService.generar(matricula, cursosDeMatricula(matricula));
     }
 
+    @Transactional
+    public Matricula prepararFichaOficial(Long matriculaId) {
+        Matricula matricula = matriculaRepository.findById(matriculaId)
+                .orElseThrow(() -> new RuntimeException("La matricula no existe"));
+
+        if (matricula.getEstado() != EstadoMatricula.PAGADA && matricula.getEstado() != EstadoMatricula.MATRICULADO) {
+            throw new RuntimeException("Solo se puede generar la ficha oficial de una matricula pagada");
+        }
+
+        if (matricula.getNumeroFicha() == null) {
+            matricula.setNumeroFicha("FO-" + matricula.getPeriodo().getAnio() + "-" + String.format("%06d", matricula.getId()));
+            matricula.setEstado(EstadoMatricula.MATRICULADO);
+            matricula = matriculaRepository.save(matricula);
+        }
+
+        return matricula;
+    }
+
+    public byte[] fichaOficialPdf(Matricula matricula) {
+        Pago pago = pagoRepository.findByMatriculaId(matricula.getId()).orElse(null);
+        return fichaPdfService.generarOficial(matricula, cursosDeMatricula(matricula), pago);
+    }
+
     private Estudiante buscarEstudiante(Usuario usuario) {
         return estudianteRepository.findByUsuarioId(usuario.getId())
                 .orElseThrow(() -> new RuntimeException("No se encontro el perfil de estudiante"));

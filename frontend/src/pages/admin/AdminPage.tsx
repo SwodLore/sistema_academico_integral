@@ -34,7 +34,7 @@ const ESTADO_VARIANTS: Record<EstadoMatricula, 'warning' | 'info' | 'destructive
   MATRICULADO: 'success',
 }
 
-const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'VALIDADA', 'PAGADA']
+const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'VALIDADA', 'PAGADA', 'MATRICULADO']
 
 function getMensajeError(err: unknown): string {
   const error = err as { response?: { data?: { message?: string } } }
@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [cursos, setCursos] = useState<CursoDetalle[]>([])
   const [cargandoCursos, setCargandoCursos] = useState(false)
   const [procesando, setProcesando] = useState(false)
+  const [descargando, setDescargando] = useState(false)
   const [rechazando, setRechazando] = useState(false)
   const [motivo, setMotivo] = useState('')
 
@@ -106,7 +107,7 @@ export default function AdminPage() {
     try {
       const res = await api.get<CursoDetalle[]>(`/matriculas/${solicitud.id}/cursos`)
       setCursos(res.data)
-      if (solicitud.estado === 'PAGADA') {
+      if (solicitud.estado === 'PAGADA' || solicitud.estado === 'MATRICULADO') {
         const resPago = await api.get<Pago | null>(`/matriculas/${solicitud.id}/pago`)
         setPago(resPago.data)
       }
@@ -160,6 +161,28 @@ export default function AdminPage() {
       toast.error(getMensajeError(err))
     } finally {
       setProcesando(false)
+    }
+  }
+
+  async function descargarFichaOficial() {
+    if (!detalle) return
+    setDescargando(true)
+    try {
+      const res = await api.get<Blob>(`/matriculas/${detalle.id}/ficha-oficial`, {
+        responseType: 'blob',
+      })
+      const url = URL.createObjectURL(res.data)
+      const enlace = document.createElement('a')
+      enlace.href = url
+      enlace.download = `ficha_oficial_${detalle.estudiante.codigoEstudiante}_${detalle.periodo.codigo}.pdf`
+      enlace.click()
+      URL.revokeObjectURL(url)
+      cerrarDetalle()
+      cargar()
+    } catch (err) {
+      toast.error(getMensajeError(err))
+    } finally {
+      setDescargando(false)
     }
   }
 
@@ -425,28 +448,44 @@ export default function AdminPage() {
             </div>
           )}
 
-          {!cargandoCursos && detalle?.estado === 'PAGADA' && pago && (
-            <div className="mt-5 border-t pt-4 space-y-2">
-              <p className="text-sm font-medium text-neutral-700">Pago registrado</p>
-              <div className="text-sm text-neutral-600 space-y-1">
-                <p>Monto: S/. {pago.monto}</p>
-                <p>Recibo: {pago.numeroRecibo}</p>
-                {pago.metodoPago && <p>Metodo: {pago.metodoPago}</p>}
-              </div>
-              {pago.comprobanteUrl && (
-                <a
-                  href={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <img
-                    src={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
-                    alt="Comprobante de pago"
-                    className="mt-2 max-h-64 rounded-md border"
-                  />
-                </a>
+          {!cargandoCursos && (detalle?.estado === 'PAGADA' || detalle?.estado === 'MATRICULADO') && (
+            <div className="mt-5 border-t pt-4 space-y-3">
+              {pago && (
+                <div>
+                  <p className="text-sm font-medium text-neutral-700">Pago registrado</p>
+                  <div className="text-sm text-neutral-600 space-y-1 mt-1">
+                    <p>Monto: S/. {pago.monto}</p>
+                    <p>Recibo: {pago.numeroRecibo}</p>
+                    {pago.metodoPago && <p>Metodo: {pago.metodoPago}</p>}
+                  </div>
+                  {pago.comprobanteUrl && (
+                    <a
+                      href={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block"
+                    >
+                      <img
+                        src={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
+                        alt="Comprobante de pago"
+                        className="mt-2 max-h-64 rounded-md border"
+                      />
+                    </a>
+                  )}
+                </div>
               )}
+
+              {detalle?.numeroFicha && (
+                <p className="text-sm text-neutral-600">Ficha oficial: {detalle.numeroFicha}</p>
+              )}
+
+              <Button className="w-full" disabled={descargando} onClick={descargarFichaOficial}>
+                {descargando
+                  ? 'Generando...'
+                  : detalle?.estado === 'MATRICULADO'
+                    ? 'Descargar ficha oficial'
+                    : 'Generar ficha oficial'}
+              </Button>
             </div>
           )}
         </DialogContent>

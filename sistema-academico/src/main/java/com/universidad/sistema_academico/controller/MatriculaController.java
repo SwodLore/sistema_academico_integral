@@ -52,6 +52,25 @@ public class MatriculaController {
         }
     }
 
+    @GetMapping("/{id}/ficha-oficial")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<?> fichaOficial(@PathVariable Long id) {
+        try {
+            Matricula matricula = matriculaService.prepararFichaOficial(id);
+            byte[] pdf = matriculaService.fichaOficialPdf(matricula);
+
+            String nombreArchivo = "ficha_oficial_" + matricula.getEstudiante().getCodigoEstudiante()
+                    + "_" + matricula.getPeriodo().getCodigo() + ".pdf";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/cursos-disponibles")
     @PreAuthorize("hasRole('ESTUDIANTE')")
     public ResponseEntity<?> cursosDisponibles(@AuthenticationPrincipal Usuario usuario) {
