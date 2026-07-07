@@ -1,7 +1,7 @@
 import type { AsignacionDocente } from './asignacionDocente'
 import type { Usuario } from './usuario'
 
-export type EstadoActa = 'ABIERTA' | 'CERRADA' | 'VALIDADA'
+export type EstadoActa = 'ABIERTA' | 'OBSERVADA' | 'VALIDADA' | 'CERRADA'
 
 export interface ActaNota {
   id: number
@@ -15,6 +15,7 @@ export interface ActaNota {
 
 export const ESTADO_ACTA_LABELS: Record<EstadoActa, string> = {
   ABIERTA: 'Abierta',
-  CERRADA: 'Cerrada',
+  OBSERVADA: 'Observada',
   VALIDADA: 'Validada',
+  CERRADA: 'Cerrada',
 }

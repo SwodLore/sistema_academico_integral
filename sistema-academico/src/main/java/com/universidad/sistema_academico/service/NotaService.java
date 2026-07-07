@@ -1,6 +1,7 @@
 package com.universidad.sistema_academico.service;
 
 import com.universidad.sistema_academico.dto.ActaNotasResponse;
+import com.universidad.sistema_academico.dto.ActaResumenDTO;
 import com.universidad.sistema_academico.dto.HojaNotasResponse;
 import com.universidad.sistema_academico.dto.NotaCursoDTO;
 import com.universidad.sistema_academico.dto.NotaEstudianteDTO;
@@ -162,13 +163,107 @@ public class NotaService {
         return construirRespuesta(asignacion, acta);
     }
 
+    // ===== Validacion y cierre de actas por el administrador (HU-17) =====
+
+    // Lista las actas de un periodo (el activo si no se indica anio/semestre)
+    public List<ActaResumenDTO> listarActas(Integer anio, String semestre) {
+        PeriodoAcademico periodo = resolverPeriodo(anio, semestre);
+        List<ActaResumenDTO> resumenes = new ArrayList<>();
+        for (ActaNota acta : actaRepository.findByAsignacionPeriodoId(periodo.getId())) {
+            resumenes.add(resumenDe(acta));
+        }
+        resumenes.sort(Comparator.comparing(ActaResumenDTO::getCursoNombre));
+        return resumenes;
+    }
+
+    // Detalle completo (notas de todos los estudiantes) de un acta, para el administrador
+    public ActaNotasResponse getActaDetalle(Long actaId) {
+        ActaNota acta = actaRepository.findById(actaId)
+                .orElseThrow(() -> new RuntimeException("El acta no existe"));
+        return construirRespuesta(acta.getAsignacion(), acta);
+    }
+
+    @Transactional
+    public ActaResumenDTO validarActa(Usuario admin, Long actaId) {
+        ActaNota acta = actaRepository.findById(actaId)
+                .orElseThrow(() -> new RuntimeException("El acta no existe"));
+
+        if (acta.getEstado() == EstadoActa.VALIDADA) {
+            throw new RuntimeException("El acta ya fue validada");
+        }
+
+        acta.setEstado(EstadoActa.VALIDADA);
+        acta.setObservacion(null);
+        acta.setValidadaPor(admin);
+        acta.setFechaValidacion(LocalDateTime.now());
+        actaRepository.save(acta);
+        return resumenDe(acta);
+    }
+
+    @Transactional
+    public ActaResumenDTO observarActa(Usuario admin, Long actaId, String observacion) {
+        if (observacion == null || observacion.isBlank()) {
+            throw new RuntimeException("Debes indicar el motivo de la observacion");
+        }
+
+        ActaNota acta = actaRepository.findById(actaId)
+                .orElseThrow(() -> new RuntimeException("El acta no existe"));
+
+        if (acta.getEstado() == EstadoActa.VALIDADA) {
+            throw new RuntimeException("El acta ya fue validada y no puede observarse");
+        }
+
+        acta.setEstado(EstadoActa.OBSERVADA);
+        acta.setObservacion(observacion.trim());
+        acta.setValidadaPor(admin);
+        acta.setFechaValidacion(LocalDateTime.now());
+        actaRepository.save(acta);
+        return resumenDe(acta);
+    }
+
+    private PeriodoAcademico resolverPeriodo(Integer anio, String semestre) {
+        if (anio != null && semestre != null && !semestre.isBlank()) {
+            return periodoRepository.findByAnioAndSemestre(anio, semestre)
+                    .orElseThrow(() -> new RuntimeException("El periodo academico no existe"));
+        }
+        return periodoRepository.findByActivoTrue()
+                .orElseThrow(() -> new RuntimeException("No hay un periodo academico activo"));
+    }
+
+    private ActaResumenDTO resumenDe(ActaNota acta) {
+        AsignacionDocente asignacion = acta.getAsignacion();
+        ActaNotasResponse detalle = construirRespuesta(asignacion, acta);
+        Usuario docente = asignacion.getDocente().getUsuario();
+
+        ActaResumenDTO dto = new ActaResumenDTO();
+        dto.setActaId(acta.getId());
+        dto.setAsignacionId(asignacion.getId());
+        dto.setCursoCodigo(detalle.getCursoCodigo());
+        dto.setCursoNombre(detalle.getCursoNombre());
+        dto.setSeccion(detalle.getSeccion());
+        dto.setPeriodo(detalle.getPeriodo());
+        dto.setDocente(docente.getApellidos() + " " + docente.getNombres());
+        dto.setEspecialidad(asignacion.getCurso().getEspecialidad().getNombre());
+        dto.setEstadoActa(acta.getEstado().name());
+        dto.setTotalEstudiantes(detalle.getTotalEstudiantes());
+        dto.setAprobados(detalle.getAprobados());
+        dto.setDesaprobados(detalle.getDesaprobados());
+        dto.setPendientes(detalle.getPendientes());
+        dto.setObservacion(acta.getObservacion());
+        return dto;
+    }
+
+    private boolean esEditable(ActaNota acta) {
+        return acta.getEstado() == EstadoActa.ABIERTA || acta.getEstado() == EstadoActa.OBSERVADA;
+    }
+
     @Transactional
     public ActaNotasResponse registrarNotas(Usuario usuario, Long asignacionId, RegistrarNotasRequest request) {
         AsignacionDocente asignacion = asignacionDelDocente(usuario, asignacionId);
         ActaNota acta = obtenerOCrearActa(asignacion);
 
-        if (acta.getEstado() != EstadoActa.ABIERTA) {
-            throw new RuntimeException("El acta ya fue cerrada y no se pueden modificar las notas");
+        if (!esEditable(acta)) {
+            throw new RuntimeException("El acta ya fue validada y no se pueden modificar las notas");
         }
 
         if (request.getNotas() == null || request.getNotas().isEmpty()) {
@@ -267,7 +362,8 @@ public class NotaService {
         response.setSeccion(asignacion.getSeccion());
         response.setPeriodo(periodo.getAnio() + "-" + periodo.getSemestre());
         response.setEstadoActa(acta.getEstado().name());
-        response.setEditable(acta.getEstado() == EstadoActa.ABIERTA);
+        response.setEditable(esEditable(acta));
+        response.setObservacion(acta.getObservacion());
         response.setPesoParcial1(PESO_PARCIAL1);
         response.setPesoParcial2(PESO_PARCIAL2);
         response.setPesoPracticas(PESO_PRACTICAS);

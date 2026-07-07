@@ -10,6 +10,7 @@ public class ActaNotasResponse {
     private String periodo;
     private String estadoActa;
     private boolean editable;
+    private String observacion;   // comentario del administrador si el acta fue observada
 
     // Pesos de la formula del promedio (porcentaje)
     private int pesoParcial1;
@@ -46,6 +47,9 @@ public class ActaNotasResponse {
 
     public boolean isEditable() { return editable; }
     public void setEditable(boolean editable) { this.editable = editable; }
+
+    public String getObservacion() { return observacion; }
+    public void setObservacion(String observacion) { this.observacion = observacion; }
 
     public int getPesoParcial1() { return pesoParcial1; }
     public void setPesoParcial1(int pesoParcial1) { this.pesoParcial1 = pesoParcial1; }

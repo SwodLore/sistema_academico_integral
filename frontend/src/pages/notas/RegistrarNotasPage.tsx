@@ -5,7 +5,7 @@ import { api } from '@/api/axios'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle2, ClipboardList, Lock, RefreshCw, Save, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ClipboardList, Lock, MessageSquareWarning, RefreshCw, Save, XCircle } from 'lucide-react'
 
 interface NotaEstudiante {
   detalleId: number
@@ -26,8 +26,9 @@ interface ActaNotas {
   cursoNombre: string
   seccion: string
   periodo: string
-  estadoActa: 'ABIERTA' | 'CERRADA' | 'VALIDADA'
+  estadoActa: 'ABIERTA' | 'OBSERVADA' | 'CERRADA' | 'VALIDADA'
   editable: boolean
+  observacion: string | null
   pesoParcial1: number
   pesoParcial2: number
   pesoPracticas: number
@@ -236,6 +237,16 @@ export default function RegistrarNotasPage() {
           )}
         </div>
       </div>
+
+      {acta.estadoActa === 'OBSERVADA' && acta.observacion && (
+        <div className="mb-6 flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+          <MessageSquareWarning className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <span>
+            El administrador <b>observó</b> esta acta: {acta.observacion}. Corrige las notas y guárdalas para su nueva
+            revisión.
+          </span>
+        </div>
+      )}
 
       {!editable && (
         <div className="mb-6 flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">

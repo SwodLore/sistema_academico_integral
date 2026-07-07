@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { LogOut, BookOpen, Award, FileText, LayoutDashboard, Users, GraduationCap, User } from 'lucide-react'
+import { LogOut, BookOpen, Award, FileText, LayoutDashboard, Users, GraduationCap, User, ClipboardCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -42,6 +42,7 @@ export default function Navbar() {
     if (user.rol === 'ADMINISTRADOR' || user.rol === 'DIRECCION') {
       return [
         { to: '/admin', label: 'Administración', icon: LayoutDashboard },
+        { to: '/admin/actas', label: 'Actas de Notas', icon: ClipboardCheck },
         { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
         { to: '/admin/facultades-especialidades', label: 'Facultades y Especialidades', icon: GraduationCap },
       ]
