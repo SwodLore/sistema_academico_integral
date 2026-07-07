@@ -28,3 +28,13 @@ export const ESTADO_MATRICULA_LABELS: Record<EstadoMatricula, string> = {
   PAGADA: 'Pagada',
   MATRICULADO: 'Matriculado',
 }
+
+export type BadgeVariant = 'warning' | 'info' | 'destructive' | 'success'
+
+export const ESTADO_MATRICULA_VARIANTS: Record<EstadoMatricula, BadgeVariant> = {
+  PENDIENTE: 'warning',
+  VALIDADA: 'info',
+  RECHAZADA: 'destructive',
+  PAGADA: 'success',
+  MATRICULADO: 'success',
+}

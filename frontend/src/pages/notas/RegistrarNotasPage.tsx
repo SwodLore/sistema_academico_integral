@@ -41,7 +41,6 @@ interface ActaNotas {
 
 type CampoNota = 'parcial1' | 'parcial2' | 'practicas' | 'notaFinal'
 
-// Guarda el valor como texto para permitir edicion parcial (vacio, decimales, etc.)
 type FilaEdicion = Record<CampoNota, string>
 
 const NOTA_MINIMA = 10.5
@@ -95,7 +94,6 @@ export default function RegistrarNotasPage() {
 
   useEffect(() => {
     cargarActa()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asignacionId])
 
   const pesos = acta
