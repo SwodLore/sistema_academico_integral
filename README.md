@@ -57,12 +57,24 @@ npm run dev
 
 El frontend corre en `http://localhost:5173`
 
-## Credenciales de prueba
+## Datos de prueba
 
-Al iniciar el backend por primera vez se crea automaticamente un usuario de prueba:
+Cada vez que inicias el backend, se borran todas las tablas y se crean de nuevo desde cero (`spring.jpa.hibernate.ddl-auto=create`), no hace falta correr scripts SQL.
 
-| Campo | Valor |
-|-------|-------|
-| Correo | admin@test.com |
-| Contrasena | 123456 |
-| Rol | ADMINISTRADOR |
+Como las tablas quedan vacias despues de recrearse, en cada arranque se cargan datos de prueba automaticamente: facultades, especialidades, cursos, un periodo academico activo, docentes, estudiantes, matriculas y notas. Esto lo hace la clase `DataInitializer`.
+
+Ojo: esto significa que cualquier dato que cargues manualmente (desde el frontend o la API) se pierde la proxima vez que reinicies el backend. Es un modo pensado para desarrollo y pruebas, no para produccion.
+
+### Credenciales de prueba
+
+Todas las contrasenas son `123456`.
+
+| Correo | Rol |
+|--------|-----|
+| admin@test.com | ADMINISTRADOR |
+| direccion@test.com | DIRECCION |
+| docente1@test.com | DOCENTE |
+| docente2@test.com | DOCENTE |
+| estudiante1@test.com | ESTUDIANTE |
+| estudiante2@test.com | ESTUDIANTE |
+| estudiante3@test.com | ESTUDIANTE |
