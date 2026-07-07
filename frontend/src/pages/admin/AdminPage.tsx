@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMatriculasAdmin } from '@/hooks/useMatriculasAdmin'
 import { useMatriculaDetalle } from '@/hooks/useMatriculaDetalle'
 import { ESTADO_MATRICULA_LABELS, type EstadoMatricula } from '@/types'
 import SolicitudesTable from './components/SolicitudesTable'
 import MatriculaDetalleDialog from './components/MatriculaDetalleDialog'
+import SilaboModal from '@/components/SilaboModal'
 
 const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'VALIDADA', 'PAGADA', 'MATRICULADO']
 
@@ -20,6 +22,7 @@ export default function AdminPage() {
   } = useMatriculasAdmin()
 
   const detalle = useMatriculaDetalle(recargar)
+  const [selectedAsignacionId, setSelectedAsignacionId] = useState<number | null>(null)
 
   return (
     <div className="min-h-screen bg-neutral-50 px-4 py-10">
@@ -83,7 +86,17 @@ export default function AdminPage() {
         onValidar={detalle.validar}
         onRegistrarPago={detalle.registrarPago}
         onDescargarFicha={detalle.descargarFichaOficial}
+        onVerSilabo={setSelectedAsignacionId}
       />
+
+      {selectedAsignacionId !== null && (
+        <SilaboModal
+          isOpen={selectedAsignacionId !== null}
+          onClose={() => setSelectedAsignacionId(null)}
+          asignacionId={selectedAsignacionId}
+          mode="read"
+        />
+      )}
     </div>
   )
 }

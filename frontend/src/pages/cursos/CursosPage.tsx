@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen, Calendar, Clock, RefreshCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCargaDocente } from '@/hooks/useCargaDocente'
 import CursoAsignadoCard from './components/CursoAsignadoCard'
+import SilaboModal from '@/components/SilaboModal'
 
 export default function CursosPage() {
   const navigate = useNavigate()
@@ -17,6 +19,8 @@ export default function CursosPage() {
     cambiarAnio,
     setSemestre,
   } = useCargaDocente()
+
+  const [selectedAsignacionId, setSelectedAsignacionId] = useState<number | null>(null)
 
   if (cargandoPeriodos) {
     return (
@@ -98,9 +102,19 @@ export default function CursosPage() {
               key={`${curso.cursoId}-${curso.seccion}`}
               curso={curso}
               onRegistrarNotas={() => navigate(`/cursos/${curso.asignacionId}/notas`)}
+              onVerSilabo={() => setSelectedAsignacionId(curso.asignacionId)}
             />
           ))}
         </div>
+      )}
+
+      {selectedAsignacionId !== null && (
+        <SilaboModal
+          isOpen={selectedAsignacionId !== null}
+          onClose={() => setSelectedAsignacionId(null)}
+          asignacionId={selectedAsignacionId}
+          mode="edit"
+        />
       )}
     </div>
   )

@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { useMiMatricula } from '@/hooks/useMiMatricula'
 import MatriculaEstadoCard from './components/MatriculaEstadoCard'
 import SeleccionCursosCard from './components/SeleccionCursosCard'
+import SilaboModal from '@/components/SilaboModal'
 
 export default function MatriculaPage() {
   const { cargando, enviando, descargando, matricula, cursosMatricula, oferta, solicitar, descargarFicha } =
     useMiMatricula()
+
+  const [selectedAsignacionId, setSelectedAsignacionId] = useState<number | null>(null)
 
   if (cargando) {
     return (
@@ -23,11 +27,21 @@ export default function MatriculaPage() {
             cursos={cursosMatricula}
             descargando={descargando}
             onDescargar={descargarFicha}
+            onVerSilabo={setSelectedAsignacionId}
           />
         ) : (
           oferta && <SeleccionCursosCard oferta={oferta} enviando={enviando} onSolicitar={solicitar} />
         )}
       </div>
+
+      {selectedAsignacionId !== null && (
+        <SilaboModal
+          isOpen={selectedAsignacionId !== null}
+          onClose={() => setSelectedAsignacionId(null)}
+          asignacionId={selectedAsignacionId}
+          mode="read"
+        />
+      )}
     </div>
   )
 }
