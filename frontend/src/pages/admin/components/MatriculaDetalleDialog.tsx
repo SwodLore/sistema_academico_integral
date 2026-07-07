@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BookOpen } from 'lucide-react'
 import { SERVER_ORIGIN } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -15,6 +16,7 @@ interface Props {
   onValidar: (aprobado: boolean, observacion: string | null) => void
   onRegistrarPago: (datos: FormData) => void
   onDescargarFicha: () => void
+  onVerSilabo?: (asignacionId: number) => void
 }
 
 export default function MatriculaDetalleDialog({
@@ -27,6 +29,7 @@ export default function MatriculaDetalleDialog({
   onValidar,
   onRegistrarPago,
   onDescargarFicha,
+  onVerSilabo,
 }: Props) {
   const [rechazando, setRechazando] = useState(false)
   const [motivo, setMotivo] = useState('')
@@ -59,11 +62,24 @@ export default function MatriculaDetalleDialog({
                     <p className="text-sm font-medium text-neutral-900">
                       {curso.codigo} - {curso.nombre}
                     </p>
-                    <p className="text-xs text-neutral-500">
-                      {curso.docente} · Seccion {curso.seccion}
-                    </p>
+                    <div className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
+                      <span>{curso.docente} · Seccion {curso.seccion}</span>
+                      {curso.asignacionId && onVerSilabo && (
+                        <>
+                          <span className="text-neutral-300">·</span>
+                          <button
+                            type="button"
+                            onClick={() => onVerSilabo(curso.asignacionId!)}
+                            className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-800 font-semibold hover:underline cursor-pointer"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            Ver Sílabo
+                          </button>
+                        </>
+                      )}
+                    </div>
                     {curso.horarios.length > 0 && (
-                      <p className="text-xs text-neutral-400">{curso.horarios.join(' | ')}</p>
+                      <p className="text-xs text-neutral-400 mt-1">{curso.horarios.join(' | ')}</p>
                     )}
                   </div>
                   <span className="text-xs text-neutral-500">{curso.creditos} cred.</span>

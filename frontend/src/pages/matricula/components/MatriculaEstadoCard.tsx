@@ -1,3 +1,4 @@
+import { BookOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,9 +9,10 @@ interface Props {
   cursos: CursoDisponible[]
   descargando: boolean
   onDescargar: () => void
+  onVerSilabo?: (asignacionId: number) => void
 }
 
-export default function MatriculaEstadoCard({ matricula, cursos, descargando, onDescargar }: Props) {
+export default function MatriculaEstadoCard({ matricula, cursos, descargando, onDescargar, onVerSilabo }: Props) {
   const totalCreditos = cursos.reduce((total, curso) => total + curso.creditos, 0)
 
   return (
@@ -47,9 +49,22 @@ export default function MatriculaEstadoCard({ matricula, cursos, descargando, on
                   <p className="text-sm font-medium text-neutral-900">
                     {curso.codigo} - {curso.nombre}
                   </p>
-                  <p className="text-xs text-neutral-500">
-                    {curso.docente} · Seccion {curso.seccion}
-                  </p>
+                  <div className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
+                    <span>{curso.docente} · Seccion {curso.seccion}</span>
+                    {curso.asignacionId && onVerSilabo && (
+                      <>
+                        <span className="text-neutral-300">·</span>
+                        <button
+                          type="button"
+                          onClick={() => onVerSilabo(curso.asignacionId!)}
+                          className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-800 font-semibold hover:underline cursor-pointer"
+                        >
+                          <BookOpen className="w-3 h-3" />
+                          Ver Sílabo
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <span className="text-xs text-neutral-500">{curso.creditos} cred.</span>
               </div>

@@ -7,9 +7,10 @@ import { DIA_SEMANA_LABELS, type CursoAsignado, type DiaSemana } from '@/types'
 interface Props {
   curso: CursoAsignado
   onRegistrarNotas: () => void
+  onVerSilabo: () => void
 }
 
-export default function CursoAsignadoCard({ curso, onRegistrarNotas }: Props) {
+export default function CursoAsignadoCard({ curso, onRegistrarNotas, onVerSilabo }: Props) {
   return (
     <Card className="flex flex-col justify-between overflow-hidden border border-neutral-200 hover:shadow-md hover:border-neutral-300 transition-all bg-white">
       <CardHeader className="pb-4">
@@ -66,10 +67,16 @@ export default function CursoAsignadoCard({ curso, onRegistrarNotas }: Props) {
           </div>
         )}
 
-        <Button className="w-full mt-4 gap-2" onClick={onRegistrarNotas}>
-          <ClipboardList className="w-4 h-4" />
-          Registrar Notas
-        </Button>
+        <div className="flex gap-3 mt-4">
+          <Button variant="outline" className="flex-1 gap-2 border-neutral-300 hover:bg-neutral-100" onClick={onVerSilabo}>
+            <BookOpen className="w-4 h-4 text-neutral-500" />
+            Gestionar Sílabo
+          </Button>
+          <Button className="flex-1 gap-2" onClick={onRegistrarNotas}>
+            <ClipboardList className="w-4 h-4" />
+            Registrar Notas
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

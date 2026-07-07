@@ -2,6 +2,7 @@ import type { EstadoNota } from './nota'
 import type { EstadoActa } from './actaNota'
 
 export interface NotaCurso {
+  asignacionId: number
   cursoCodigo: string
   cursoNombre: string
   creditos: number

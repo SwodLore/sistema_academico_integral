@@ -2,6 +2,7 @@
 
 export interface CursoDisponible {
   cursoId: number
+  asignacionId?: number
   codigo: string
   nombre: string
   creditos: number
