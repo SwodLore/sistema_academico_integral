@@ -1,6 +1,8 @@
 package com.universidad.sistema_academico.service;
 
 import com.universidad.sistema_academico.dto.ActaNotasResponse;
+import com.universidad.sistema_academico.dto.HojaNotasResponse;
+import com.universidad.sistema_academico.dto.NotaCursoDTO;
 import com.universidad.sistema_academico.dto.NotaEstudianteDTO;
 import com.universidad.sistema_academico.dto.RegistrarNotasRequest;
 import com.universidad.sistema_academico.entity.*;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotaService {
@@ -44,6 +47,114 @@ public class NotaService {
 
     @Autowired
     private ActaNotaRepository actaRepository;
+
+    @Autowired
+    private EstudianteRepository estudianteRepository;
+
+    @Autowired
+    private PeriodoAcademicoRepository periodoRepository;
+
+    @Autowired
+    private MatriculaRepository matriculaRepository;
+
+    // Hoja de notas del estudiante para el periodo academico activo (HU-16)
+    public HojaNotasResponse getHojaNotas(Usuario usuario) {
+        Estudiante estudiante = estudianteRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("No se encontro el perfil de estudiante"));
+        PeriodoAcademico periodo = periodoRepository.findByActivoTrue()
+                .orElseThrow(() -> new RuntimeException("No hay un periodo academico activo"));
+
+        HojaNotasResponse response = new HojaNotasResponse();
+        response.setPeriodo(periodo.getAnio() + "-" + periodo.getSemestre());
+        response.setCiclo(estudiante.getCicloActual());
+        response.setPesoParcial1(PESO_PARCIAL1);
+        response.setPesoParcial2(PESO_PARCIAL2);
+        response.setPesoPracticas(PESO_PRACTICAS);
+        response.setPesoNotaFinal(PESO_NOTA_FINAL);
+
+        Optional<Matricula> matriculaOpt = matriculaRepository
+                .findByEstudianteIdAndPeriodoId(estudiante.getId(), periodo.getId());
+        if (matriculaOpt.isEmpty()) {
+            response.setTieneMatricula(false);
+            return response;
+        }
+
+        Matricula matricula = matriculaOpt.get();
+        response.setTieneMatricula(true);
+        response.setMatriculaEstado(matricula.getEstado().name());
+
+        // Los cursos y notas solo aplican si la matricula ya fue confirmada
+        if (matricula.getEstado() == EstadoMatricula.PENDIENTE
+                || matricula.getEstado() == EstadoMatricula.RECHAZADA) {
+            return response;
+        }
+
+        int aprobados = 0;
+        int desaprobados = 0;
+        int pendientes = 0;
+        int totalCreditos = 0;
+        int creditosAprobados = 0;
+        int creditosCalificados = 0;
+        BigDecimal sumaPonderada = BigDecimal.ZERO;
+
+        List<NotaCursoDTO> cursos = new ArrayList<>();
+        for (DetalleMatricula detalle : detalleRepository.findByMatriculaId(matricula.getId())) {
+            AsignacionDocente asignacion = detalle.getAsignacion();
+            Curso curso = asignacion.getCurso();
+            Usuario usuarioDocente = asignacion.getDocente().getUsuario();
+            Nota nota = notaRepository.findByDetalleId(detalle.getId()).orElse(null);
+            ActaNota acta = actaRepository.findByAsignacionId(asignacion.getId()).orElse(null);
+
+            EstadoNota estado = nota != null ? nota.getEstado() : EstadoNota.PENDIENTE;
+            int creditos = curso.getCreditos();
+            totalCreditos += creditos;
+
+            if (estado == EstadoNota.APROBADO) {
+                aprobados++;
+                creditosAprobados += creditos;
+            } else if (estado == EstadoNota.DESAPROBADO) {
+                desaprobados++;
+            } else {
+                pendientes++;
+            }
+
+            BigDecimal promedio = nota != null ? nota.getPromedio() : null;
+            if (promedio != null) {
+                sumaPonderada = sumaPonderada.add(promedio.multiply(BigDecimal.valueOf(creditos)));
+                creditosCalificados += creditos;
+            }
+
+            cursos.add(new NotaCursoDTO(
+                    curso.getCodigo(),
+                    curso.getNombre(),
+                    creditos,
+                    asignacion.getSeccion(),
+                    usuarioDocente.getNombres() + " " + usuarioDocente.getApellidos(),
+                    nota != null ? nota.getParcial1() : null,
+                    nota != null ? nota.getParcial2() : null,
+                    nota != null ? nota.getPracticas() : null,
+                    nota != null ? nota.getNotaFinal() : null,
+                    promedio,
+                    estado.name(),
+                    acta != null ? acta.getEstado().name() : EstadoActa.ABIERTA.name()
+            ));
+        }
+
+        cursos.sort(Comparator.comparing(NotaCursoDTO::getCursoNombre));
+
+        response.setCursos(cursos);
+        response.setTotalCursos(cursos.size());
+        response.setAprobados(aprobados);
+        response.setDesaprobados(desaprobados);
+        response.setPendientes(pendientes);
+        response.setTotalCreditos(totalCreditos);
+        response.setCreditosAprobados(creditosAprobados);
+        if (creditosCalificados > 0) {
+            response.setPromedioPonderado(
+                    sumaPonderada.divide(BigDecimal.valueOf(creditosCalificados), 2, RoundingMode.HALF_UP));
+        }
+        return response;
+    }
 
     public ActaNotasResponse getActa(Usuario usuario, Long asignacionId) {
         AsignacionDocente asignacion = asignacionDelDocente(usuario, asignacionId);
