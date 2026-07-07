@@ -291,6 +291,7 @@ public class MatriculaService {
 
         return new CursoDisponibleResponse(
                 curso.getId(),
+                asignacion.getId(),
                 curso.getCodigo(),
                 curso.getNombre(),
                 curso.getCreditos(),

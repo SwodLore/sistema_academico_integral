@@ -5,6 +5,7 @@ import java.util.List;
 public class CursoDisponibleResponse {
 
     private Long cursoId;
+    private Long asignacionId;
     private String codigo;
     private String nombre;
     private Integer creditos;
@@ -12,9 +13,10 @@ public class CursoDisponibleResponse {
     private String seccion;
     private List<String> horarios;
 
-    public CursoDisponibleResponse(Long cursoId, String codigo, String nombre, Integer creditos,
+    public CursoDisponibleResponse(Long cursoId, Long asignacionId, String codigo, String nombre, Integer creditos,
                                    String docente, String seccion, List<String> horarios) {
         this.cursoId = cursoId;
+        this.asignacionId = asignacionId;
         this.codigo = codigo;
         this.nombre = nombre;
         this.creditos = creditos;
@@ -24,6 +26,7 @@ public class CursoDisponibleResponse {
     }
 
     public Long getCursoId() { return cursoId; }
+    public Long getAsignacionId() { return asignacionId; }
     public String getCodigo() { return codigo; }
     public String getNombre() { return nombre; }
     public Integer getCreditos() { return creditos; }

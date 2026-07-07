@@ -36,4 +36,13 @@ public class AsignacionDocente {
     private String silaboNombre;
 
     private LocalDateTime fechaCargaSilabo;
+
+    @Column(columnDefinition = "TEXT")
+    private String competencias;
+
+    @Column(columnDefinition = "TEXT")
+    private String contenido;
+
+    @Column(columnDefinition = "TEXT")
+    private String bibliografia;
 }

@@ -3,6 +3,7 @@ package com.universidad.sistema_academico.dto;
 import java.math.BigDecimal;
 
 public class NotaCursoDTO {
+    private Long asignacionId;
     private String cursoCodigo;
     private String cursoNombre;
     private Integer creditos;
@@ -18,9 +19,10 @@ public class NotaCursoDTO {
 
     public NotaCursoDTO() {}
 
-    public NotaCursoDTO(String cursoCodigo, String cursoNombre, Integer creditos, String seccion, String docente,
+    public NotaCursoDTO(Long asignacionId, String cursoCodigo, String cursoNombre, Integer creditos, String seccion, String docente,
                         BigDecimal parcial1, BigDecimal parcial2, BigDecimal practicas, BigDecimal notaFinal,
                         BigDecimal promedio, String estado, String estadoActa) {
+        this.asignacionId = asignacionId;
         this.cursoCodigo = cursoCodigo;
         this.cursoNombre = cursoNombre;
         this.creditos = creditos;
@@ -34,6 +36,9 @@ public class NotaCursoDTO {
         this.estado = estado;
         this.estadoActa = estadoActa;
     }
+
+    public Long getAsignacionId() { return asignacionId; }
+    public void setAsignacionId(Long asignacionId) { this.asignacionId = asignacionId; }
 
     public String getCursoCodigo() { return cursoCodigo; }
     public void setCursoCodigo(String cursoCodigo) { this.cursoCodigo = cursoCodigo; }

@@ -126,6 +126,7 @@ public class NotaService {
             }
 
             cursos.add(new NotaCursoDTO(
+                    asignacion.getId(),
                     curso.getCodigo(),
                     curso.getNombre(),
                     creditos,
