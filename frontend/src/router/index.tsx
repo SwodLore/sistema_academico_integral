@@ -14,6 +14,7 @@ import FacultadesEspecialidadesPage from '@/pages/admin/FacultadesEspecialidades
 import ActasPage from '@/pages/actas/ActasPage'
 import CursosAdminPage from '@/pages/admin/cursos/CursosAdminPage'
 import AsignacionesDocentesPage from '@/pages/admin/cursos/AsignacionesDocentesPage'
+import IndicadoresPage from '@/pages/indicadores/IndicadoresPage'
 import HorariosAdminPage from '@/pages/admin/cursos/HorariosAdminPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin', element: <AdminPage /> },
       { path: '/admin/actas', element: <ActasPage /> },
+      { path: '/admin/indicadores', element: <IndicadoresPage /> },
       { path: '/admin/usuarios', element: <UsuariosPage /> },
       { path: '/admin/facultades-especialidades', element: <FacultadesEspecialidadesPage /> },
       { path: '/admin/cursos', element: <CursosAdminPage /> },

@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { LogOut, BookOpen, Award, FileText, LayoutDashboard, Users, GraduationCap, User, ClipboardCheck, Calendar, Clock } from 'lucide-react'
+import { LogOut, BookOpen, Award, FileText, LayoutDashboard, Users, GraduationCap, User, ClipboardCheck, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -46,6 +46,7 @@ export default function Navbar() {
         { to: '/admin/asignaciones', label: 'Asignar Docentes', icon: Calendar },
         { to: '/admin/horarios', label: 'Horarios', icon: Clock },
         { to: '/admin/actas', label: 'Actas de Notas', icon: ClipboardCheck },
+        { to: '/admin/indicadores', label: 'Indicadores', icon: BarChart3 },
         { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
         { to: '/admin/facultades-especialidades', label: 'Facultades y Especialidades', icon: GraduationCap },
       ]
@@ -81,11 +82,10 @@ export default function Navbar() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
-                      isActive
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${isActive
                         ? 'border-neutral-900 text-neutral-900'
                         : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {link.label}
@@ -123,7 +123,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Links */}
       <div className="sm:hidden border-t border-neutral-100 flex justify-around py-2 bg-neutral-50/50">
         {links.map((link) => {
@@ -133,9 +133,8 @@ export default function Navbar() {
             <Link
               key={link.to}
               to={link.to}
-              className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-                isActive ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'
-              }`}
+              className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${isActive ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{link.label}</span>
