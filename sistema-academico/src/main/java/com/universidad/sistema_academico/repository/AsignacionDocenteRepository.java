@@ -13,5 +13,6 @@ public interface AsignacionDocenteRepository extends JpaRepository<AsignacionDoc
     List<AsignacionDocente> findByPeriodoIdAndCursoEspecialidadId(Long periodoId, Long especialidadId);
     List<AsignacionDocente> findByPeriodoIdAndCursoEspecialidadIdAndCursoCiclo(Long periodoId, Long especialidadId, Integer ciclo);
     Optional<AsignacionDocente> findFirstByCursoIdAndPeriodoId(Long cursoId, Long periodoId);
+    Optional<AsignacionDocente> findByCursoIdAndPeriodoIdAndSeccion(Long cursoId, Long periodoId, String seccion);
     long countByDocenteIdAndPeriodoId(Long docenteId, Long periodoId);
 }
