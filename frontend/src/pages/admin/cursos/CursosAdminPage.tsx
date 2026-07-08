@@ -156,10 +156,10 @@ export default function CursosAdminPage() {
                 <CardTitle className="text-lg font-bold">Listado ({cursosFiltrados.length})</CardTitle>
                 <CardDescription>Cursos registrados organizados por ciclo académico</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <span className="text-xs font-semibold text-neutral-500 whitespace-nowrap">Especialidad:</span>
                 <select
-                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-500 focus:outline-none"
+                  className="h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-500 focus:outline-none sm:w-[280px]"
                   value={filtroEspecialidad}
                   onChange={(e) => setFiltroEspecialidad(e.target.value)}
                 >
