@@ -1,7 +1,7 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import type { Rol } from '@/store/auth.store'
-import Navbar from '@/components/Navbar'
+import AppLayout from '@/components/layout/AppLayout'
 
 interface Props {
   roles?: Rol[]
@@ -18,12 +18,5 @@ export default function ProtectedRoute({ roles }: Props) {
     return <Navigate to="/403" replace />
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
-      <Navbar />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-    </div>
-  )
+  return <AppLayout />
 }

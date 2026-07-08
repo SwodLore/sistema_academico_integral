@@ -41,9 +41,9 @@ export default function AdminPage() {
                 </CardTitle>
                 <CardDescription>Ordenadas de la mas antigua a la mas reciente</CardDescription>
               </div>
-              <div className="flex gap-3">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <select
-                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm"
+                  className="h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm sm:w-[180px]"
                   value={filtroEstado}
                   onChange={(e) => setFiltroEstado(e.target.value as EstadoMatricula)}
                 >
@@ -52,7 +52,7 @@ export default function AdminPage() {
                   ))}
                 </select>
                 <select
-                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm"
+                  className="h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm sm:w-[260px]"
                   value={filtroEspecialidad}
                   onChange={(e) => setFiltroEspecialidad(e.target.value)}
                 >
