@@ -26,4 +26,13 @@ public class EstudianteController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    @GetMapping("/historial")
+    public ResponseEntity<?> historial(@AuthenticationPrincipal Usuario usuario) {
+        try {
+            return ResponseEntity.ok(notaService.getHistorial(usuario));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
