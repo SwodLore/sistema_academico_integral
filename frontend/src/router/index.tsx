@@ -4,6 +4,9 @@ import HomeRedirect from '@/components/HomeRedirect'
 import LoginPage from '@/pages/auth/LoginPage'
 import MatriculaPage from '@/pages/matricula/MatriculaPage'
 import CursosPage from '@/pages/cursos/CursosPage'
+import MiHorarioPage from '@/pages/cursos/MiHorarioPage'
+import MisSilabosPage from '@/pages/cursos/MisSilabosPage'
+import RegistroNotasPage from '@/pages/cursos/RegistroNotasPage'
 import NotasPage from '@/pages/notas/NotasPage'
 import RegistrarNotasPage from '@/pages/notas/RegistrarNotasPage'
 import RecordPage from '@/pages/record/RecordPage'
@@ -44,6 +47,9 @@ const router = createBrowserRouter([
     children: [
       { path: '/cursos', element: <CursosPage /> },
       { path: '/cursos/:asignacionId/notas', element: <RegistrarNotasPage /> },
+      { path: '/docente/notas', element: <RegistroNotasPage /> },
+      { path: '/docente/silabos', element: <MisSilabosPage /> },
+      { path: '/docente/horario', element: <MiHorarioPage /> },
     ],
   },
 
@@ -57,11 +63,17 @@ const router = createBrowserRouter([
       { path: '/admin/indicadores', element: <IndicadoresPage /> },
       { path: '/admin/reportes', element: <ReportesPage /> },
       { path: '/admin/cohortes', element: <CohortesPage /> },
-      { path: '/admin/usuarios', element: <UsuariosPage /> },
-      { path: '/admin/facultades-especialidades', element: <FacultadesEspecialidadesPage /> },
       { path: '/admin/cursos', element: <CursosAdminPage /> },
       { path: '/admin/asignaciones', element: <AsignacionesDocentesPage /> },
       { path: '/admin/horarios', element: <HorariosAdminPage /> },
+    ],
+  },
+
+  {
+    element: <ProtectedRoute roles={['ADMINISTRADOR']} />,
+    children: [
+      { path: '/admin/usuarios', element: <UsuariosPage /> },
+      { path: '/admin/facultades-especialidades', element: <FacultadesEspecialidadesPage /> },
       { path: '/admin/auditoria', element: <AuditoriaPage /> },
     ],
   },

@@ -52,36 +52,51 @@ export default function SeleccionCursosCard({ oferta, enviando, onSolicitar }: P
             </p>
           )}
 
-          {oferta.cursos.map((curso) => (
-            <label
-              key={curso.cursoId}
-              className={`flex items-start gap-3 border rounded-md px-3 py-3 cursor-pointer transition-colors ${
-                seleccionados.includes(curso.cursoId)
-                  ? 'border-neutral-900 bg-neutral-100'
-                  : 'hover:bg-neutral-50'
-              }`}
-            >
-              <Checkbox
-                className="mt-1"
-                checked={seleccionados.includes(curso.cursoId)}
-                onCheckedChange={() => toggleCurso(curso.cursoId)}
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-neutral-900">
-                    {curso.codigo} - {curso.nombre}
+          {oferta.cursos.map((curso) => {
+            const sinVacantes = curso.vacantes !== undefined && curso.vacantes <= 0
+            return (
+              <label
+                key={curso.cursoId}
+                className={`flex items-start gap-3 border rounded-md px-3 py-3 transition-colors ${
+                  sinVacantes
+                    ? 'opacity-60 cursor-not-allowed bg-neutral-50'
+                    : seleccionados.includes(curso.cursoId)
+                      ? 'border-neutral-900 bg-neutral-100 cursor-pointer'
+                      : 'hover:bg-neutral-50 cursor-pointer'
+                }`}
+              >
+                <Checkbox
+                  className="mt-1"
+                  disabled={sinVacantes}
+                  checked={seleccionados.includes(curso.cursoId)}
+                  onCheckedChange={() => toggleCurso(curso.cursoId)}
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-neutral-900">
+                      {curso.codigo} - {curso.nombre}
+                    </p>
+                    <span className="text-xs text-neutral-500">{curso.creditos} cred.</span>
+                  </div>
+                  <p className="text-xs text-neutral-500">
+                    {curso.docente} · Seccion {curso.seccion}
                   </p>
-                  <span className="text-xs text-neutral-500">{curso.creditos} cred.</span>
+                  {curso.horarios.length > 0 && (
+                    <p className="text-xs text-neutral-400">{curso.horarios.join(' | ')}</p>
+                  )}
+                  {curso.vacantes !== undefined && (
+                    <p
+                      className={`text-xs font-medium ${
+                        sinVacantes ? 'text-red-600' : curso.vacantes <= 5 ? 'text-amber-600' : 'text-green-700'
+                      }`}
+                    >
+                      {sinVacantes ? 'Sin vacantes' : `${curso.vacantes} vacantes de ${curso.cupos}`}
+                    </p>
+                  )}
                 </div>
-                <p className="text-xs text-neutral-500">
-                  {curso.docente} · Seccion {curso.seccion}
-                </p>
-                {curso.horarios.length > 0 && (
-                  <p className="text-xs text-neutral-400">{curso.horarios.join(' | ')}</p>
-                )}
-              </div>
-            </label>
-          ))}
+              </label>
+            )
+          })}
 
           {excede && <p className="text-xs text-red-600">Superaste el limite de creditos permitido.</p>}
 

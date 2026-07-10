@@ -16,5 +16,7 @@ export interface AsignacionConHorarios {
   docente: Docente
   periodo: PeriodoAcademico
   seccion: string
+  cupos?: number
+  matriculados?: number
   horarios: HorarioSimplificado[]
 }

@@ -12,6 +12,8 @@ public class AsignacionDocenteResponseDTO {
     private PeriodoAcademico periodo;
     private String seccion;
     private List<HorarioDTO> horarios;
+    private Integer cupos;
+    private Integer matriculados;
 
     public AsignacionDocenteResponseDTO() {}
 
@@ -41,4 +43,10 @@ public class AsignacionDocenteResponseDTO {
 
     public List<HorarioDTO> getHorarios() { return horarios; }
     public void setHorarios(List<HorarioDTO> horarios) { this.horarios = horarios; }
+
+    public Integer getCupos() { return cupos; }
+    public void setCupos(Integer cupos) { this.cupos = cupos; }
+
+    public Integer getMatriculados() { return matriculados; }
+    public void setMatriculados(Integer matriculados) { this.matriculados = matriculados; }
 }

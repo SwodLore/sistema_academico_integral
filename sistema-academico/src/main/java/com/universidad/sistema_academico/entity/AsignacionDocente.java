@@ -31,6 +31,9 @@ public class AsignacionDocente {
     @Column(nullable = false, length = 2)
     private String seccion = "A";
 
+    @Column(nullable = false)
+    private Integer cupos = 30;
+
     private String silaboUrl;
 
     private String silaboNombre;

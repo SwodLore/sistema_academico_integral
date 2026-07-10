@@ -21,6 +21,7 @@ const INITIAL_FORM = {
   anio: new Date().getFullYear(),
   semestre: 'I',
   seccion: 'A',
+  cupos: 30,
   horarios: [] as HorarioSimplificado[],
 }
 
@@ -71,6 +72,7 @@ export default function AsignacionesDocentesPage() {
       anio: new Date().getFullYear(),
       semestre: 'I',
       seccion: 'A',
+      cupos: 30,
       horarios: [{ ...INITIAL_HORARIO }],
     })
     setErrores({})
@@ -86,6 +88,7 @@ export default function AsignacionesDocentesPage() {
       anio: asig.periodo.anio,
       semestre: asig.periodo.semestre,
       seccion: asig.seccion,
+      cupos: asig.cupos ?? 30,
       horarios: asig.horarios.map((h) => ({
         dia: h.dia,
         horaInicio: h.horaInicio.substring(0, 5), // Normalizar a "HH:mm" si viene como "HH:mm:ss"
@@ -130,6 +133,7 @@ export default function AsignacionesDocentesPage() {
     if (!form.docenteId) err.docenteId = 'Debe seleccionar un docente'
     if (!form.seccion.trim()) err.seccion = 'La sección es obligatoria'
     if (!form.anio || form.anio < 2000) err.anio = 'Año inválido'
+    if (!form.cupos || form.cupos < 1) err.cupos = 'Los cupos deben ser al menos 1'
     if (form.horarios.length === 0) {
       err.horarios = 'Debes definir al menos un bloque de horario'
     }
@@ -149,6 +153,7 @@ export default function AsignacionesDocentesPage() {
         anio: form.anio,
         semestre: form.semestre,
         seccion: form.seccion.toUpperCase(),
+        cupos: form.cupos,
         horarios: form.horarios.map(h => ({
           ...h,
           aula: h.aula?.trim() || 'AULA-VIRTUAL'
@@ -242,6 +247,7 @@ export default function AsignacionesDocentesPage() {
                       <th className="px-6 py-3">Periodo</th>
                       <th className="px-6 py-3">Curso / Secc.</th>
                       <th className="px-6 py-3">Docente</th>
+                      <th className="px-6 py-3">Cupos</th>
                       <th className="px-6 py-3">Horario Semanal</th>
                       <th className="px-6 py-3 text-right">Acciones</th>
                     </tr>
@@ -270,6 +276,17 @@ export default function AsignacionesDocentesPage() {
                           <div className="text-xs text-neutral-400 font-mono mt-0.5">
                             {asig.docente.codigoDocente} • {asig.docente.usuario.email}
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`text-xs font-bold ${
+                              (asig.matriculados ?? 0) >= (asig.cupos ?? 30)
+                                ? 'text-red-600'
+                                : 'text-neutral-700'
+                            }`}
+                          >
+                            {asig.matriculados ?? 0} / {asig.cupos ?? 30}
+                          </span>
                         </td>
                         <td className="px-6 py-4 max-w-[320px]">
                           <div className="space-y-1.5">
@@ -371,7 +388,7 @@ export default function AsignacionesDocentesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Año</label>
                 <input
@@ -410,6 +427,19 @@ export default function AsignacionesDocentesPage() {
                   disabled={procesando}
                 />
                 {errores.seccion && <p className="text-[11px] text-red-600 font-medium">{errores.seccion}</p>}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Cupos</label>
+                <input
+                  type="number"
+                  min={1}
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none font-semibold"
+                  value={form.cupos}
+                  onChange={(e) => actualizarCampo('cupos', e.target.value ? Number(e.target.value) : 0)}
+                  disabled={procesando}
+                />
+                {errores.cupos && <p className="text-[11px] text-red-600 font-medium">{errores.cupos}</p>}
               </div>
             </div>
 

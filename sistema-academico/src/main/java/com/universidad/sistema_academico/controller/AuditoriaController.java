@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/admin/auditoria")
-@PreAuthorize("hasAnyRole('DIRECCION', 'ADMINISTRADOR')")
+@PreAuthorize("hasRole('ADMINISTRADOR')")
 public class AuditoriaController {
 
     @Autowired

@@ -119,6 +119,10 @@ public class MatriculaService {
                 throw new RuntimeException("El curso " + curso.getNombre() + " no pertenece a tu especialidad");
             }
 
+            if (vacantes(asignacion) <= 0) {
+                throw new RuntimeException("El curso " + curso.getNombre() + " ya no tiene vacantes");
+            }
+
             totalCreditos += curso.getCreditos();
             asignaciones.add(asignacion);
         }
@@ -297,6 +301,16 @@ public class MatriculaService {
                 curso.getCreditos(),
                 usuarioDocente.getNombres() + " " + usuarioDocente.getApellidos(),
                 asignacion.getSeccion(),
-                horarios);
+                horarios,
+                asignacion.getCupos(),
+                vacantes(asignacion));
+    }
+
+    /** Vacantes restantes de una sección: cupos menos matrículas no rechazadas */
+    private int vacantes(AsignacionDocente asignacion) {
+        long ocupados = detalleRepository
+                .countByAsignacionIdAndMatriculaEstadoNot(asignacion.getId(), EstadoMatricula.RECHAZADA);
+        int cupos = asignacion.getCupos() != null ? asignacion.getCupos() : 0;
+        return Math.max(0, cupos - (int) ocupados);
     }
 }

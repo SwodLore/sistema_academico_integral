@@ -193,7 +193,7 @@ public class AdminAsignacionDocenteController {
                     h.getAula()
             )).collect(Collectors.toList());
 
-            return new AsignacionDocenteResponseDTO(
+            AsignacionDocenteResponseDTO dto = new AsignacionDocenteResponseDTO(
                     a.getId(),
                     a.getCurso(),
                     a.getDocente(),
@@ -201,6 +201,10 @@ public class AdminAsignacionDocenteController {
                     a.getSeccion(),
                     horariosDTO
             );
+            dto.setCupos(a.getCupos());
+            dto.setMatriculados((int) detalleMatriculaRepository
+                    .countByAsignacionIdAndMatriculaEstadoNot(a.getId(), EstadoMatricula.RECHAZADA));
+            return dto;
         }).collect(Collectors.toList());
     }
 
@@ -225,6 +229,7 @@ public class AdminAsignacionDocenteController {
             asignacion.setDocente(docente);
             asignacion.setPeriodo(periodo);
             asignacion.setSeccion(request.getSeccion());
+            asignacion.setCupos(request.getCupos() != null ? request.getCupos() : 30);
             AsignacionDocente guardada = asignacionRepository.save(asignacion);
 
             guardarHorarios(guardada, request.getHorarios());
@@ -258,6 +263,9 @@ public class AdminAsignacionDocenteController {
             asignacion.setDocente(docente);
             asignacion.setPeriodo(periodo);
             asignacion.setSeccion(request.getSeccion());
+            if (request.getCupos() != null) {
+                asignacion.setCupos(request.getCupos());
+            }
             AsignacionDocente guardada = asignacionRepository.save(asignacion);
 
             // Eliminar horarios anteriores

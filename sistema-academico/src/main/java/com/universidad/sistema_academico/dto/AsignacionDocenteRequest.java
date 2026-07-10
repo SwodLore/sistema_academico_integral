@@ -1,6 +1,7 @@
 package com.universidad.sistema_academico.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -22,6 +23,9 @@ public class AsignacionDocenteRequest {
     @NotBlank(message = "La seccion es obligatoria")
     private String seccion;
 
+    @Min(value = 1, message = "Los cupos deben ser al menos 1")
+    private Integer cupos;
+
     @Valid
     private List<HorarioRequest> horarios;
 
@@ -39,6 +43,9 @@ public class AsignacionDocenteRequest {
 
     public String getSeccion() { return seccion; }
     public void setSeccion(String seccion) { this.seccion = seccion; }
+
+    public Integer getCupos() { return cupos; }
+    public void setCupos(Integer cupos) { this.cupos = cupos; }
 
     public List<HorarioRequest> getHorarios() { return horarios; }
     public void setHorarios(List<HorarioRequest> horarios) { this.horarios = horarios; }

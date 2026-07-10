@@ -148,6 +148,7 @@ export default function HorariosAdminPage() {
         anio: editando.periodo.anio,
         semestre: editando.periodo.semestre,
         seccion: editando.seccion,
+        cupos: editando.cupos ?? 30,
         horarios: horariosForm.map((h) => ({
           ...h,
           aula: h.aula?.trim().toUpperCase() || 'AULA-VIRTUAL',
@@ -189,6 +190,7 @@ export default function HorariosAdminPage() {
         anio: editando.periodo.anio,
         semestre: editando.periodo.semestre,
         seccion: editando.seccion,
+        cupos: editando.cupos ?? 30,
         horarios: editando.horarios.map((h, index) => ({
           dia: h.dia,
           horaInicio: h.horaInicio.substring(0, 5),

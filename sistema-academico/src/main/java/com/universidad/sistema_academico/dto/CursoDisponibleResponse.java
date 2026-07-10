@@ -12,9 +12,12 @@ public class CursoDisponibleResponse {
     private String docente;
     private String seccion;
     private List<String> horarios;
+    private Integer cupos;
+    private Integer vacantes;
 
     public CursoDisponibleResponse(Long cursoId, Long asignacionId, String codigo, String nombre, Integer creditos,
-                                   String docente, String seccion, List<String> horarios) {
+                                   String docente, String seccion, List<String> horarios,
+                                   Integer cupos, Integer vacantes) {
         this.cursoId = cursoId;
         this.asignacionId = asignacionId;
         this.codigo = codigo;
@@ -23,6 +26,8 @@ public class CursoDisponibleResponse {
         this.docente = docente;
         this.seccion = seccion;
         this.horarios = horarios;
+        this.cupos = cupos;
+        this.vacantes = vacantes;
     }
 
     public Long getCursoId() { return cursoId; }
@@ -33,4 +38,6 @@ public class CursoDisponibleResponse {
     public String getDocente() { return docente; }
     public String getSeccion() { return seccion; }
     public List<String> getHorarios() { return horarios; }
+    public Integer getCupos() { return cupos; }
+    public Integer getVacantes() { return vacantes; }
 }

@@ -9,6 +9,8 @@ export interface CursoDisponible {
   docente: string
   seccion: string
   horarios: string[]
+  cupos?: number
+  vacantes?: number
 }
 
 export interface CursosDisponibles {

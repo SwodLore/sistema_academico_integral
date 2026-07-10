@@ -37,7 +37,7 @@ public class CatalogoController {
     }
 
     @PostMapping("/api/facultades")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<?> crearFacultad(@Valid @RequestBody FacultadRequest request, BindingResult result) {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body(errores(result));
@@ -56,7 +56,7 @@ public class CatalogoController {
     }
 
     @PostMapping("/api/especialidades")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<?> crearEspecialidad(@Valid @RequestBody EspecialidadRequest request, BindingResult result) {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body(errores(result));

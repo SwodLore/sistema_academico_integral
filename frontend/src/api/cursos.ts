@@ -17,6 +17,7 @@ export interface AsignacionPayload {
   anio: number
   semestre: string
   seccion: string
+  cupos: number
   horarios: HorarioSimplificado[]
 }
 
