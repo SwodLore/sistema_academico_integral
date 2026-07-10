@@ -27,6 +27,9 @@ public class LogAuditoria {
     @Column(length = 500)
     private String detalle;
 
+    @Column(nullable = false, length = 10)
+    private String resultado = "EXITO";
+
     @Column(length = 45)
     private String ip;
 

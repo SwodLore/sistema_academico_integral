@@ -9,6 +9,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  ScrollText,
   TrendingUp,
   Users,
   UserCheck,
@@ -49,6 +50,7 @@ export function getNavLinks(rol: Rol): NavLink[] {
       { to: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
       { to: '/admin/cohortes', label: 'Cohortes', icon: TrendingUp },
       { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
+      { to: '/admin/auditoria', label: 'Auditoría', icon: ScrollText },
       {
         to: '/admin/facultades-especialidades',
         label: 'Facultades y Especialidades',

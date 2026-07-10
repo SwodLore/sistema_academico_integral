@@ -11,6 +11,7 @@ import CertificadosPage from '@/pages/certificados/CertificadosPage'
 import AdminPage from '@/pages/admin/AdminPage'
 import UsuariosPage from '@/pages/admin/UsuariosPage'
 import FacultadesEspecialidadesPage from '@/pages/admin/FacultadesEspecialidadesPage'
+import AuditoriaPage from '@/pages/admin/AuditoriaPage'
 import ActasPage from '@/pages/actas/ActasPage'
 import CursosAdminPage from '@/pages/admin/cursos/CursosAdminPage'
 import AsignacionesDocentesPage from '@/pages/admin/cursos/AsignacionesDocentesPage'
@@ -61,6 +62,7 @@ const router = createBrowserRouter([
       { path: '/admin/cursos', element: <CursosAdminPage /> },
       { path: '/admin/asignaciones', element: <AsignacionesDocentesPage /> },
       { path: '/admin/horarios', element: <HorariosAdminPage /> },
+      { path: '/admin/auditoria', element: <AuditoriaPage /> },
     ],
   },
 
