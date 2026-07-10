@@ -1,0 +1,31 @@
+package com.universidad.sistema_academico.config;
+
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig {
+
+    private static final String SECURITY_SCHEME_NAME = "bearerAuth";
+
+    @Bean
+    public OpenAPI sistemaAcademicoOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Sistema Académico Integral - API")
+                        .description("API REST del sistema académico: autenticación, matrícula, cursos, sílabos, actas y gestión de usuarios.")
+                        .version("v0.0.1"))
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
+                .components(new Components()
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME, new SecurityScheme()
+                                .name(SECURITY_SCHEME_NAME)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
+    }
+}

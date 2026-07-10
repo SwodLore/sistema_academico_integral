@@ -30,7 +30,7 @@ public class MatriculaController {
     private MatriculaService matriculaService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> listar(@RequestParam(required = false) EstadoMatricula estado,
                                     @RequestParam(required = false) Integer anio,
                                     @RequestParam(required = false) String semestre,
@@ -43,7 +43,7 @@ public class MatriculaController {
     }
 
     @GetMapping("/{id}/cursos")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> cursos(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(matriculaService.cursosDeMatricula(id));
@@ -53,7 +53,7 @@ public class MatriculaController {
     }
 
     @GetMapping("/{id}/ficha-oficial")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> fichaOficial(@PathVariable Long id) {
         try {
             Matricula matricula = matriculaService.prepararFichaOficial(id);
@@ -136,7 +136,7 @@ public class MatriculaController {
     }
 
     @GetMapping("/{id}/pago")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> verPago(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(matriculaService.pagoDeMatricula(id));
@@ -146,7 +146,7 @@ public class MatriculaController {
     }
 
     @PostMapping(value = "/{id}/pago", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> registrarPago(@AuthenticationPrincipal Usuario usuario,
                                            @PathVariable Long id,
                                            @RequestParam BigDecimal monto,
@@ -161,7 +161,7 @@ public class MatriculaController {
     }
 
     @PutMapping("/{id}/validar")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
     public ResponseEntity<?> validar(@AuthenticationPrincipal Usuario usuario,
                                      @PathVariable Long id,
                                      @Valid @RequestBody ValidarMatriculaRequest request,
