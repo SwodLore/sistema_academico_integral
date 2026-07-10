@@ -38,6 +38,7 @@ export function getNavLinks(rol: Rol): NavLink[] {
     return [
       { to: '/admin', label: 'Administración', icon: LayoutDashboard },
       { to: '/admin/carga-docente', label: 'Carga Docente', icon: UserCheck },
+      { to: '/admin/certificados', label: 'Certificados', icon: Award },
       { to: '/admin/cursos', label: 'Cursos', icon: BookOpen },
       { to: '/admin/asignaciones', label: 'Asignar Docentes', icon: Calendar },
       { to: '/admin/horarios', label: 'Horarios', icon: Clock },

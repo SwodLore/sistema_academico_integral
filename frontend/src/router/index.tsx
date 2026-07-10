@@ -17,6 +17,7 @@ import AsignacionesDocentesPage from '@/pages/admin/cursos/AsignacionesDocentesP
 import IndicadoresPage from '@/pages/indicadores/IndicadoresPage'
 import HorariosAdminPage from '@/pages/admin/cursos/HorariosAdminPage'
 import CargaDocentePage from '@/pages/admin/CargaDocentePage'
+import CertificadosAdminPage from '@/pages/admin/CertificadosAdminPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin', element: <AdminPage /> },
       { path: '/admin/carga-docente', element: <CargaDocentePage /> },
+      { path: '/admin/certificados', element: <CertificadosAdminPage /> },
       { path: '/admin/actas', element: <ActasPage /> },
       { path: '/admin/indicadores', element: <IndicadoresPage /> },
       { path: '/admin/usuarios', element: <UsuariosPage /> },
