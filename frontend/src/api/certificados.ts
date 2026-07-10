@@ -11,6 +11,6 @@ export const certificadosApi = {
   listarTodas: () =>
     api.get<SolicitudDocumento[]>('/solicitudes-documento').then((r) => r.data),
 
-  procesarSolicitud: (id: number, datos: { estado: EstadoSolicitud }) =>
+  procesarSolicitud: (id: number, datos: { estado: EstadoSolicitud; motivoRechazo?: string }) =>
     api.put<SolicitudDocumento>(`/solicitudes-documento/${id}/procesar`, datos).then((r) => r.data),
 }

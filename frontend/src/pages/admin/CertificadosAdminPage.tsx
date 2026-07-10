@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { certificadosApi, SERVER_ORIGIN } from '@/api'
 import { getApiError } from '@/lib/apiError'
 import { toast } from 'sonner'
@@ -23,6 +25,10 @@ export default function CertificadosAdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [procesandoId, setProcesandoId] = useState<number | null>(null)
 
+  // Rejection Dialog State
+  const [rechazandoSolicitud, setRechazandoSolicitud] = useState<SolicitudDocumento | null>(null)
+  const [motivoRechazo, setMotivoRechazo] = useState('')
+
   const cargarTodas = async () => {
     try {
       const data = await certificadosApi.listarTodas()
@@ -39,10 +45,10 @@ export default function CertificadosAdminPage() {
   }, [])
 
   // Process request state transitions
-  const handleProcesar = async (id: number, estado: EstadoSolicitud) => {
+  const handleProcesar = async (id: number, estado: EstadoSolicitud, motivo?: string) => {
     setProcesandoId(id)
     try {
-      await certificadosApi.procesarSolicitud(id, { estado })
+      await certificadosApi.procesarSolicitud(id, { estado, motivoRechazo: motivo })
       toast.success(`Solicitud actualizada a: ${ESTADO_SOLICITUD_LABELS[estado]}`)
       cargarTodas()
     } catch (err) {
@@ -50,6 +56,20 @@ export default function CertificadosAdminPage() {
     } finally {
       setProcesandoId(null)
     }
+  }
+
+  const handleConfirmarRechazo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!rechazandoSolicitud) return
+    if (!motivoRechazo.trim()) {
+      toast.error('Debe ingresar un motivo para el rechazo')
+      return
+    }
+    const id = rechazandoSolicitud.id
+    const motivoText = motivoRechazo.trim()
+    setRechazandoSolicitud(null)
+    setMotivoRechazo('')
+    await handleProcesar(id, 'RECHAZADO', motivoText)
   }
 
   // Filter requests
@@ -77,7 +97,7 @@ export default function CertificadosAdminPage() {
   const stats = useMemo(() => {
     const total = solicitudes.length
     const pendientes = solicitudes.filter((s) => s.estado === 'PENDIENTE').length
-    const autorizadas = solicitudes.filter((s) => s.estado === 'AUTORIZADA').length
+    const autorizadas = solicitudes.filter((s) => s.estado === 'EN_PROCESO').length
     const emitidas = solicitudes.filter((s) => s.estado === 'LISTO').length
     return { total, pendientes, autorizadas, emitidas }
   }, [solicitudes])
@@ -144,9 +164,9 @@ export default function CertificadosAdminPage() {
               >
                 <option value="TODAS">Todos los Estados</option>
                 <option value="PENDIENTE">Pendientes</option>
-                <option value="AUTORIZADA">Autorizadas (Pendientes de Emisión)</option>
+                <option value="EN_PROCESO">Autorizadas (Pendientes de Emisión)</option>
                 <option value="LISTO">Listos / Emitidos</option>
-                <option value="RECHAZADA">Rechazadas</option>
+                <option value="RECHAZADO">Rechazados</option>
               </select>
             </div>
 
@@ -196,11 +216,11 @@ export default function CertificadosAdminPage() {
                       let badge = <Badge variant="default">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       if (solicitud.estado === 'PENDIENTE') {
                         badge = <Badge variant="warning" className="bg-amber-50 text-amber-700 border-amber-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
-                      } else if (solicitud.estado === 'AUTORIZADA') {
+                      } else if (solicitud.estado === 'EN_PROCESO') {
                         badge = <Badge variant="info" className="bg-blue-50 text-blue-700 border-blue-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       } else if (solicitud.estado === 'LISTO') {
                         badge = <Badge variant="success" className="bg-green-50 text-green-700 border-green-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
-                      } else if (solicitud.estado === 'RECHAZADA') {
+                      } else if (solicitud.estado === 'RECHAZADO') {
                         badge = <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       }
 
@@ -239,7 +259,7 @@ export default function CertificadosAdminPage() {
                                     size="sm"
                                     className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1"
                                     disabled={esProcesando}
-                                    onClick={() => handleProcesar(solicitud.id, 'AUTORIZADA')}
+                                    onClick={() => handleProcesar(solicitud.id, 'EN_PROCESO')}
                                   >
                                     <Check className="w-3.5 h-3.5" />
                                     Autorizar
@@ -249,7 +269,7 @@ export default function CertificadosAdminPage() {
                                     variant="outline"
                                     className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 gap-1"
                                     disabled={esProcesando}
-                                    onClick={() => handleProcesar(solicitud.id, 'RECHAZADA')}
+                                    onClick={() => setRechazandoSolicitud(solicitud)}
                                   >
                                     <X className="w-3.5 h-3.5" />
                                     Rechazar
@@ -257,7 +277,7 @@ export default function CertificadosAdminPage() {
                                 </>
                               )}
 
-                              {solicitud.estado === 'AUTORIZADA' && (
+                              {solicitud.estado === 'EN_PROCESO' && (
                                 <>
                                   <Button
                                     size="sm"
@@ -273,7 +293,7 @@ export default function CertificadosAdminPage() {
                                     variant="outline"
                                     className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 gap-1"
                                     disabled={esProcesando}
-                                    onClick={() => handleProcesar(solicitud.id, 'RECHAZADA')}
+                                    onClick={() => setRechazandoSolicitud(solicitud)}
                                   >
                                     <X className="w-3.5 h-3.5" />
                                     Rechazar
@@ -294,7 +314,7 @@ export default function CertificadosAdminPage() {
                                 </Button>
                               )}
 
-                              {solicitud.estado === 'RECHAZADA' && (
+                              {solicitud.estado === 'RECHAZADO' && (
                                 <span className="text-xs text-neutral-400 italic">Rechazado</span>
                               )}
                             </div>
@@ -309,6 +329,42 @@ export default function CertificadosAdminPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Rejection Motive Dialog */}
+      <Dialog open={!!rechazandoSolicitud} onOpenChange={(open) => !open && setRechazandoSolicitud(null)}>
+        <DialogContent className="sm:max-w-[480px] p-6">
+          <form onSubmit={handleConfirmarRechazo} className="space-y-4">
+            <div className="pb-2 border-b border-neutral-100">
+              <DialogTitle className="text-lg font-bold">Rechazar Solicitud</DialogTitle>
+              <DialogDescription>
+                Indique el motivo de rechazo de la solicitud. Este texto será visible para el estudiante.
+              </DialogDescription>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="motivoRechazo" className="text-xs font-semibold text-neutral-600">Motivo del Rechazo</Label>
+              <textarea
+                id="motivoRechazo"
+                required
+                placeholder="Ej. La fotografía cargada no es legible o falta documentación."
+                className="min-h-[90px] w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                maxLength={300}
+              />
+            </div>
+
+            <div className="pt-3 border-t border-neutral-100 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setRechazandoSolicitud(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="destructive">
+                Confirmar Rechazo
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -64,7 +64,7 @@ export default function CertificadosPage() {
     const total = solicitudes.length
     const pendientes = solicitudes.filter((s) => s.estado === 'PENDIENTE').length
     const emitidas = solicitudes.filter((s) => s.estado === 'LISTO').length
-    const rechazadas = solicitudes.filter((s) => s.estado === 'RECHAZADA').length
+    const rechazadas = solicitudes.filter((s) => s.estado === 'RECHAZADO').length
     return { total, pendientes, emitidas, rechazadas }
   }, [solicitudes])
 
@@ -217,11 +217,11 @@ export default function CertificadosPage() {
                       let badge = <Badge variant="default">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       if (solicitud.estado === 'PENDIENTE') {
                         badge = <Badge variant="warning" className="bg-amber-50 text-amber-700 border-amber-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
-                      } else if (solicitud.estado === 'AUTORIZADA') {
+                      } else if (solicitud.estado === 'EN_PROCESO') {
                         badge = <Badge variant="info" className="bg-blue-50 text-blue-700 border-blue-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       } else if (solicitud.estado === 'LISTO') {
                         badge = <Badge variant="success" className="bg-green-50 text-green-700 border-green-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
-                      } else if (solicitud.estado === 'RECHAZADA') {
+                      } else if (solicitud.estado === 'RECHAZADO') {
                         badge = <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       }
 
@@ -230,7 +230,12 @@ export default function CertificadosPage() {
                       return (
                         <tr key={solicitud.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50/50">
                           <td className="px-4 py-3.5 font-medium text-neutral-800">
-                            {TIPO_DOCUMENTO_LABELS[solicitud.tipo]}
+                            <div>{TIPO_DOCUMENTO_LABELS[solicitud.tipo]}</div>
+                            {solicitud.estado === 'RECHAZADO' && solicitud.motivoRechazo && (
+                              <div className="text-xs text-red-600 mt-1 font-normal">
+                                Motivo rechazo: {solicitud.motivoRechazo}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3.5 text-neutral-600 text-xs">
                             <span className="flex items-center gap-1">

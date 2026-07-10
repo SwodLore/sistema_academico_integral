@@ -116,9 +116,11 @@ public class SolicitudDocumentoController {
             EstadoSolicitud nuevoEstado = request.getEstado();
             solicitud.setEstado(nuevoEstado);
 
-            if (nuevoEstado == EstadoSolicitud.AUTORIZADA) {
+            if (nuevoEstado == EstadoSolicitud.EN_PROCESO) {
                 solicitud.setAutorizadaPor(usuario);
                 solicitud.setFechaAutorizacion(LocalDateTime.now());
+            } else if (nuevoEstado == EstadoSolicitud.RECHAZADO) {
+                solicitud.setMotivoRechazo(request.getMotivoRechazo());
             } else if (nuevoEstado == EstadoSolicitud.LISTO) {
                 solicitud.setEmitidaPor(usuario);
                 solicitud.setFechaEmision(LocalDateTime.now());
