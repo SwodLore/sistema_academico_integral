@@ -16,10 +16,23 @@ export interface CursoAsignado {
   creditos: number
   horasSemanales: number
   horarios: HorarioClase[]
+  especialidadNombre?: string
+  ciclo?: number
 }
 
 export interface DocenteCarga {
   totalCreditos: number
   totalHoras: number
   cursos: CursoAsignado[]
+}
+
+export interface DocenteCargaResumen {
+  docenteId: number
+  codigoDocente: string
+  dni: string
+  nombreCompleto: string
+  gradoAcademico: string
+  facultadNombre: string
+  cantidadCursos: number
+  totalHoras: number
 }

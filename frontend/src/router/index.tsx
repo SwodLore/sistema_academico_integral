@@ -16,6 +16,7 @@ import CursosAdminPage from '@/pages/admin/cursos/CursosAdminPage'
 import AsignacionesDocentesPage from '@/pages/admin/cursos/AsignacionesDocentesPage'
 import IndicadoresPage from '@/pages/indicadores/IndicadoresPage'
 import HorariosAdminPage from '@/pages/admin/cursos/HorariosAdminPage'
+import CargaDocentePage from '@/pages/admin/CargaDocentePage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute roles={['ADMINISTRADOR', 'DIRECCION']} />,
     children: [
       { path: '/admin', element: <AdminPage /> },
+      { path: '/admin/carga-docente', element: <CargaDocentePage /> },
       { path: '/admin/actas', element: <ActasPage /> },
       { path: '/admin/indicadores', element: <IndicadoresPage /> },
       { path: '/admin/usuarios', element: <UsuariosPage /> },
