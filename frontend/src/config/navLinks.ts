@@ -5,6 +5,7 @@ import {
   Calendar,
   ClipboardCheck,
   Clock,
+  FileBarChart,
   FileText,
   GraduationCap,
   LayoutDashboard,
@@ -44,6 +45,7 @@ export function getNavLinks(rol: Rol): NavLink[] {
       { to: '/admin/horarios', label: 'Horarios', icon: Clock },
       { to: '/admin/actas', label: 'Actas de Notas', icon: ClipboardCheck },
       { to: '/admin/indicadores', label: 'Indicadores', icon: BarChart3 },
+      { to: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
       { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
       {
         to: '/admin/facultades-especialidades',
