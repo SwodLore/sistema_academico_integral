@@ -29,6 +29,9 @@ public class SolicitudDocumento {
     @Column(length = 300)
     private String motivo;
 
+    @Column(length = 300)
+    private String motivoRechazo;
+
     @Column(nullable = false)
     private LocalDateTime fechaSolicitud = LocalDateTime.now();
 
