@@ -9,6 +9,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   Users,
+  UserCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { Rol } from '@/store/auth.store'
@@ -36,6 +37,7 @@ export function getNavLinks(rol: Rol): NavLink[] {
   if (rol === 'ADMINISTRADOR' || rol === 'DIRECCION') {
     return [
       { to: '/admin', label: 'Administración', icon: LayoutDashboard },
+      { to: '/admin/carga-docente', label: 'Carga Docente', icon: UserCheck },
       { to: '/admin/cursos', label: 'Cursos', icon: BookOpen },
       { to: '/admin/asignaciones', label: 'Asignar Docentes', icon: Calendar },
       { to: '/admin/horarios', label: 'Horarios', icon: Clock },
