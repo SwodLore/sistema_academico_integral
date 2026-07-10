@@ -11,6 +11,8 @@ public class CursoAsignadoDTO {
     private int creditos;
     private int horasSemanales;
     private List<HorarioDTO> horarios;
+    private String especialidadNombre;
+    private Integer ciclo;
 
     public CursoAsignadoDTO() {}
 
@@ -48,4 +50,10 @@ public class CursoAsignadoDTO {
 
     public List<HorarioDTO> getHorarios() { return horarios; }
     public void setHorarios(List<HorarioDTO> horarios) { this.horarios = horarios; }
+
+    public String getEspecialidadNombre() { return especialidadNombre; }
+    public void setEspecialidadNombre(String especialidadNombre) { this.especialidadNombre = especialidadNombre; }
+
+    public Integer getCiclo() { return ciclo; }
+    public void setCiclo(Integer ciclo) { this.ciclo = ciclo; }
 }

@@ -48,6 +48,137 @@ public class AdminAsignacionDocenteController {
         return docenteRepository.findAll();
     }
 
+    @GetMapping("/carga-docente")
+    public ResponseEntity<?> getCargaDocentes(
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) String semestre,
+            @RequestParam(required = false) Long especialidadId) {
+        try {
+            PeriodoAcademico periodo = null;
+            if (anio != null && semestre != null && !semestre.trim().isEmpty()) {
+                periodo = periodoRepository.findByAnioAndSemestre(anio, semestre)
+                        .orElse(null);
+            } else {
+                periodo = periodoRepository.findByActivoTrue().orElse(null);
+            }
+
+            if (periodo == null) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            List<Docente> docentes = docenteRepository.findAll();
+            List<DocenteCargaResumenDTO> result = new ArrayList<>();
+
+            for (Docente docente : docentes) {
+                List<AsignacionDocente> asignaciones = asignacionRepository.findByDocenteIdAndPeriodoId(docente.getId(), periodo.getId());
+
+                if (especialidadId != null) {
+                    asignaciones = asignaciones.stream()
+                            .filter(a -> a.getCurso().getEspecialidad().getId().equals(especialidadId))
+                            .collect(Collectors.toList());
+                }
+
+                if (especialidadId != null && asignaciones.isEmpty()) {
+                    continue;
+                }
+
+                int cantidadCursos = asignaciones.size();
+                int totalHoras = asignaciones.stream()
+                        .mapToInt(a -> a.getCurso().getHorasSemanales())
+                        .sum();
+
+                DocenteCargaResumenDTO dto = new DocenteCargaResumenDTO();
+                dto.setDocenteId(docente.getId());
+                dto.setCodigoDocente(docente.getCodigoDocente());
+                dto.setDni(docente.getDni());
+                dto.setNombreCompleto(docente.getUsuario().getNombres() + " " + docente.getUsuario().getApellidos());
+                dto.setGradoAcademico(docente.getGradoAcademico());
+                dto.setFacultadNombre(docente.getFacultad() != null ? docente.getFacultad().getNombre() : "");
+                dto.setCantidadCursos(cantidadCursos);
+                dto.setTotalHoras(totalHoras);
+
+                result.add(dto);
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/carga-docente/{docenteId}")
+    public ResponseEntity<?> getDetalleCargaDocente(
+            @PathVariable Long docenteId,
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) String semestre,
+            @RequestParam(required = false) Long especialidadId) {
+        try {
+            Docente docente = docenteRepository.findById(docenteId)
+                    .orElseThrow(() -> new RuntimeException("No se encontro el docente"));
+
+            PeriodoAcademico periodo = null;
+            if (anio != null && semestre != null && !semestre.trim().isEmpty()) {
+                periodo = periodoRepository.findByAnioAndSemestre(anio, semestre)
+                        .orElse(null);
+            } else {
+                periodo = periodoRepository.findByActivoTrue().orElse(null);
+            }
+
+            if (periodo == null) {
+                return ResponseEntity.ok(new DocenteCargaAcademicaResponse(0, 0, new ArrayList<>()));
+            }
+
+            List<AsignacionDocente> asignaciones = asignacionRepository.findByDocenteIdAndPeriodoId(docente.getId(), periodo.getId());
+
+            if (especialidadId != null) {
+                asignaciones = asignaciones.stream()
+                        .filter(a -> a.getCurso().getEspecialidad().getId().equals(especialidadId))
+                        .collect(Collectors.toList());
+            }
+
+            int totalCreditos = 0;
+            int totalHoras = 0;
+            List<CursoAsignadoDTO> cursosDTO = new ArrayList<>();
+            DateTimeFormatter horaFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+            for (AsignacionDocente asignacion : asignaciones) {
+                Curso curso = asignacion.getCurso();
+                totalCreditos += curso.getCreditos();
+                totalHoras += curso.getHorasSemanales();
+
+                List<Horario> horarios = horarioRepository.findByAsignacionId(asignacion.getId());
+                List<HorarioDTO> horariosDTO = new ArrayList<>();
+                for (Horario h : horarios) {
+                    horariosDTO.add(new HorarioDTO(
+                            h.getDia().name(),
+                            h.getHoraInicio().format(horaFormatter),
+                            h.getHoraFin().format(horaFormatter),
+                            h.getAula()
+                    ));
+                }
+
+                CursoAsignadoDTO dto = new CursoAsignadoDTO(
+                        asignacion.getId(),
+                        curso.getId(),
+                        curso.getCodigo(),
+                        curso.getNombre(),
+                        asignacion.getSeccion(),
+                        curso.getCreditos(),
+                        curso.getHorasSemanales(),
+                        horariosDTO
+                );
+                dto.setEspecialidadNombre(curso.getEspecialidad().getNombre());
+                dto.setCiclo(curso.getCiclo());
+
+                cursosDTO.add(dto);
+            }
+
+            return ResponseEntity.ok(new DocenteCargaAcademicaResponse(totalCreditos, totalHoras, cursosDTO));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/asignaciones")
     public List<AsignacionDocenteResponseDTO> listarAsignaciones() {
         List<AsignacionDocente> asignaciones = asignacionRepository.findAll();

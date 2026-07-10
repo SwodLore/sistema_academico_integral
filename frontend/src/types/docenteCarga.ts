@@ -1,4 +1,4 @@
-// Respuesta del backend con la carga academica del docente
+
 
 export interface HorarioClase {
   dia: string
