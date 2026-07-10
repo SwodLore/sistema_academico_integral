@@ -8,7 +8,7 @@ export type TipoDocumento =
   | 'CONSTANCIA_EGRESADO'
   | 'CONSTANCIA_TERCIO_SUPERIOR'
 
-export type EstadoSolicitud = 'PENDIENTE' | 'AUTORIZADA' | 'EMITIDA' | 'RECHAZADA'
+export type EstadoSolicitud = 'PENDIENTE' | 'AUTORIZADA' | 'LISTO' | 'RECHAZADA'
 
 export interface SolicitudDocumento {
   id: number
@@ -37,6 +37,6 @@ export const TIPO_DOCUMENTO_LABELS: Record<TipoDocumento, string> = {
 export const ESTADO_SOLICITUD_LABELS: Record<EstadoSolicitud, string> = {
   PENDIENTE: 'Pendiente',
   AUTORIZADA: 'Autorizada',
-  EMITIDA: 'Emitida',
+  LISTO: 'Listo para Descargar',
   RECHAZADA: 'Rechazada',
 }

@@ -78,7 +78,7 @@ export default function CertificadosAdminPage() {
     const total = solicitudes.length
     const pendientes = solicitudes.filter((s) => s.estado === 'PENDIENTE').length
     const autorizadas = solicitudes.filter((s) => s.estado === 'AUTORIZADA').length
-    const emitidas = solicitudes.filter((s) => s.estado === 'EMITIDA').length
+    const emitidas = solicitudes.filter((s) => s.estado === 'LISTO').length
     return { total, pendientes, autorizadas, emitidas }
   }, [solicitudes])
 
@@ -144,8 +144,8 @@ export default function CertificadosAdminPage() {
               >
                 <option value="TODAS">Todos los Estados</option>
                 <option value="PENDIENTE">Pendientes</option>
-                <option value="AUTORIZADA">Autorizadas</option>
-                <option value="EMITIDA">Emitidas</option>
+                <option value="AUTORIZADA">Autorizadas (Pendientes de Emisión)</option>
+                <option value="LISTO">Listos / Emitidos</option>
                 <option value="RECHAZADA">Rechazadas</option>
               </select>
             </div>
@@ -198,7 +198,7 @@ export default function CertificadosAdminPage() {
                         badge = <Badge variant="warning" className="bg-amber-50 text-amber-700 border-amber-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       } else if (solicitud.estado === 'AUTORIZADA') {
                         badge = <Badge variant="info" className="bg-blue-50 text-blue-700 border-blue-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
-                      } else if (solicitud.estado === 'EMITIDA') {
+                      } else if (solicitud.estado === 'LISTO') {
                         badge = <Badge variant="success" className="bg-green-50 text-green-700 border-green-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
                       } else if (solicitud.estado === 'RECHAZADA') {
                         badge = <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">{ESTADO_SOLICITUD_LABELS[solicitud.estado]}</Badge>
@@ -263,7 +263,7 @@ export default function CertificadosAdminPage() {
                                     size="sm"
                                     className="h-8 text-xs bg-green-600 hover:bg-green-700 text-white gap-1"
                                     disabled={esProcesando}
-                                    onClick={() => handleProcesar(solicitud.id, 'EMITIDA')}
+                                    onClick={() => handleProcesar(solicitud.id, 'LISTO')}
                                   >
                                     <FileCheck className="w-3.5 h-3.5" />
                                     Emitir PDF
@@ -281,7 +281,7 @@ export default function CertificadosAdminPage() {
                                 </>
                               )}
 
-                              {solicitud.estado === 'EMITIDA' && solicitud.documentoUrl && (
+                              {solicitud.estado === 'LISTO' && solicitud.documentoUrl && (
                                 <Button
                                   size="sm"
                                   variant="outline"
