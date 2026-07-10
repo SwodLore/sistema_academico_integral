@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/solicitudes-documento")
@@ -120,7 +119,7 @@ public class SolicitudDocumentoController {
             if (nuevoEstado == EstadoSolicitud.AUTORIZADA) {
                 solicitud.setAutorizadaPor(usuario);
                 solicitud.setFechaAutorizacion(LocalDateTime.now());
-            } else if (nuevoEstado == EstadoSolicitud.EMITIDA) {
+            } else if (nuevoEstado == EstadoSolicitud.LISTO) {
                 solicitud.setEmitidaPor(usuario);
                 solicitud.setFechaEmision(LocalDateTime.now());
                 solicitud.setCodigoVerificacion(UUID.randomUUID().toString());
@@ -149,21 +148,31 @@ public class SolicitudDocumentoController {
         }
     }
 
+    @GetMapping("/verificar/{codigoVerificacion}")
+    public ResponseEntity<?> verificarDocumento(@PathVariable String codigoVerificacion) {
+        try {
+            SolicitudDocumento solicitud = solicitudRepository.findByCodigoVerificacion(codigoVerificacion)
+                    .orElseThrow(() -> new RuntimeException("Documento no válido o no registrado"));
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("valido", true);
+            data.put("tipo", TIPO_DOCUMENTO_LABELS.getOrDefault(solicitud.getTipo(), "Constancia Académica"));
+            data.put("estudiante", solicitud.getEstudiante().getUsuario().getNombres() + " " + solicitud.getEstudiante().getUsuario().getApellidos());
+            data.put("codigoEstudiante", solicitud.getEstudiante().getCodigoEstudiante());
+            data.put("fechaEmision", solicitud.getFechaEmision());
+            data.put("codigoVerificacion", solicitud.getCodigoVerificacion());
+
+            return ResponseEntity.ok(data);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("valido", false, "message", e.getMessage()));
+        }
+    }
+
     private byte[] generarPdfMock(String titulo, String estudiante, String codigoVerificacion) {
-        String content = "%PDF-1.4\n" +
-                "1 0 obj\n" +
-                "<< /Type /Catalog /Pages 2 0 R >>\n" +
-                "endobj\n" +
-                "2 0 obj\n" +
-                "<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n" +
-                "endobj\n" +
-                "3 0 obj\n" +
-                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>\n" +
-                "endobj\n" +
-                "4 0 obj\n" +
-                "<< /Length 320 >>\n" +
-                "stream\n" +
-                "BT\n" +
+        String verificationUrl = "http://localhost:8080/api/solicitudes-documento/verificar/" + codigoVerificacion;
+        String qrVector = generateQrPdfVector(verificationUrl);
+
+        String textStream = "BT\n" +
                 "/F1 18 Tf\n" +
                 "50 750 Td\n" +
                 "(" + titulo.toUpperCase() + ") Tj\n" +
@@ -179,7 +188,31 @@ public class SolicitudDocumentoController {
                 "0 -30 Td\n" +
                 "(Fecha de emision: " + java.time.LocalDate.now().toString() + ") Tj\n" +
                 "ET\n" +
-                "endstream\n" +
+                "BT\n" +
+                "/F1 8 Tf\n" +
+                "440 100 Td\n" +
+                "(Documento Valido - Escanee para verificar) Tj\n" +
+                "ET\n" +
+                qrVector;
+
+        byte[] textStreamBytes = textStream.getBytes(StandardCharsets.UTF_8);
+        int streamLength = textStreamBytes.length;
+
+        String header = "%PDF-1.4\n" +
+                "1 0 obj\n" +
+                "<< /Type /Catalog /Pages 2 0 R >>\n" +
+                "endobj\n" +
+                "2 0 obj\n" +
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n" +
+                "endobj\n" +
+                "3 0 obj\n" +
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>\n" +
+                "endobj\n" +
+                "4 0 obj\n" +
+                "<< /Length " + streamLength + " >>\n" +
+                "stream\n";
+
+        String footer = "\nendstream\n" +
                 "endobj\n" +
                 "xref\n" +
                 "0 5\n" +
@@ -193,7 +226,39 @@ public class SolicitudDocumentoController {
                 "startxref\n" +
                 "650\n" +
                 "%%EOF";
-        return content.getBytes(StandardCharsets.UTF_8);
+
+        byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+        byte[] footerBytes = footer.getBytes(StandardCharsets.UTF_8);
+
+        byte[] pdfBytes = new byte[headerBytes.length + textStreamBytes.length + footerBytes.length];
+        System.arraycopy(headerBytes, 0, pdfBytes, 0, headerBytes.length);
+        System.arraycopy(textStreamBytes, 0, pdfBytes, headerBytes.length, textStreamBytes.length);
+        System.arraycopy(footerBytes, 0, pdfBytes, headerBytes.length + textStreamBytes.length, footerBytes.length);
+
+        return pdfBytes;
+    }
+
+    private String generateQrPdfVector(String url) {
+        try {
+            io.nayuki.qrcodegen.QrCode qr = io.nayuki.qrcodegen.QrCode.encodeText(url, io.nayuki.qrcodegen.QrCode.Ecc.MEDIUM);
+            StringBuilder sb = new StringBuilder();
+            double scale = 2.5;
+            double offsetX = 440;
+            double offsetY = 120;
+            for (int y = 0; y < qr.size; y++) {
+                for (int x = 0; x < qr.size; x++) {
+                    if (qr.getModule(x, y)) {
+                        double px = offsetX + x * scale;
+                        double py = offsetY + (qr.size - 1 - y) * scale;
+                        sb.append(String.format(Locale.US, "%.1f %.1f %.1f %.1f re\n", px, py, scale, scale));
+                    }
+                }
+            }
+            sb.append("f\n");
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private Map<String, String> errores(BindingResult result) {
