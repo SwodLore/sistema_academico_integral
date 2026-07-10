@@ -9,6 +9,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  TrendingUp,
   Users,
   UserCheck,
   type LucideIcon,
@@ -46,6 +47,7 @@ export function getNavLinks(rol: Rol): NavLink[] {
       { to: '/admin/actas', label: 'Actas de Notas', icon: ClipboardCheck },
       { to: '/admin/indicadores', label: 'Indicadores', icon: BarChart3 },
       { to: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
+      { to: '/admin/cohortes', label: 'Cohortes', icon: TrendingUp },
       { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
       {
         to: '/admin/facultades-especialidades',
