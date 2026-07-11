@@ -47,6 +47,7 @@ export default function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           ) : (
             <>
               <span className="flex items-center gap-2 truncate">
+                <img src="/logo-uncp.png" alt="Escudo UNCP" className="size-8 shrink-0" />
                 <span className="text-xl font-bold text-foreground">UNCP</span>
                 <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
                   Portal

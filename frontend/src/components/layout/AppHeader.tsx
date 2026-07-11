@@ -57,6 +57,7 @@ export default function AppHeader() {
           <SheetContent side="left" className="w-72 p-0">
             <SheetHeader className="border-b border-border px-4 py-4 text-left">
               <SheetTitle className="flex items-center gap-2">
+                <img src="/logo-uncp.png" alt="Escudo UNCP" className="size-8 shrink-0" />
                 <span>UNCP</span>
                 <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
                   Portal
@@ -100,6 +101,7 @@ export default function AppHeader() {
         </Sheet>
 
         <div className="flex items-center gap-2 md:hidden">
+          <img src="/logo-uncp.png" alt="Escudo UNCP" className="size-8 shrink-0" />
           <span className="text-xl font-bold text-foreground">UNCP</span>
           <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
             Portal

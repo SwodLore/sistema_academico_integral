@@ -6,6 +6,7 @@ import com.universidad.sistema_academico.entity.*;
 import com.universidad.sistema_academico.repository.EstudianteRepository;
 import com.universidad.sistema_academico.repository.SolicitudDocumentoRepository;
 import com.universidad.sistema_academico.repository.UsuarioRepository;
+import com.universidad.sistema_academico.service.CertificadoPdfService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +36,9 @@ public class SolicitudDocumentoController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private CertificadoPdfService certificadoPdfService;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
@@ -135,9 +138,10 @@ public class SolicitudDocumentoController {
                 Path filePath = dirPath.resolve(filename);
 
                 String label = TIPO_DOCUMENTO_LABELS.getOrDefault(solicitud.getTipo(), "Constancia Académica");
-                String nombreEstudiante = solicitud.getEstudiante().getUsuario().getNombres() + " " + solicitud.getEstudiante().getUsuario().getApellidos();
-                
-                byte[] pdfBytes = generarPdfMock(label, nombreEstudiante, solicitud.getCodigoVerificacion());
+                String urlVerificacion = "http://localhost:8080/api/solicitudes-documento/verificar/"
+                        + solicitud.getCodigoVerificacion();
+
+                byte[] pdfBytes = certificadoPdfService.generar(solicitud, label, urlVerificacion);
                 Files.write(filePath, pdfBytes);
 
                 solicitud.setDocumentoUrl("/uploads/certificados/" + filename);
@@ -167,99 +171,6 @@ public class SolicitudDocumentoController {
             return ResponseEntity.ok(data);
         } catch (Exception e) {
             return ResponseEntity.status(404).body(Map.of("valido", false, "message", e.getMessage()));
-        }
-    }
-
-    private byte[] generarPdfMock(String titulo, String estudiante, String codigoVerificacion) {
-        String verificationUrl = "http://localhost:8080/api/solicitudes-documento/verificar/" + codigoVerificacion;
-        String qrVector = generateQrPdfVector(verificationUrl);
-
-        String textStream = "BT\n" +
-                "/F1 18 Tf\n" +
-                "50 750 Td\n" +
-                "(" + titulo.toUpperCase() + ") Tj\n" +
-                "0 -40 Td\n" +
-                "/F1 12 Tf\n" +
-                "(Estudiante: " + estudiante + ") Tj\n" +
-                "0 -30 Td\n" +
-                "(Por medio de la presente, se hace constar el registro oficial de este documento) Tj\n" +
-                "0 -15 Td\n" +
-                "(en el sistema academico de nuestra Facultad.) Tj\n" +
-                "0 -40 Td\n" +
-                "(Codigo de verificacion: " + codigoVerificacion + ") Tj\n" +
-                "0 -30 Td\n" +
-                "(Fecha de emision: " + java.time.LocalDate.now().toString() + ") Tj\n" +
-                "ET\n" +
-                "BT\n" +
-                "/F1 8 Tf\n" +
-                "440 100 Td\n" +
-                "(Documento Valido - Escanee para verificar) Tj\n" +
-                "ET\n" +
-                qrVector;
-
-        byte[] textStreamBytes = textStream.getBytes(StandardCharsets.UTF_8);
-        int streamLength = textStreamBytes.length;
-
-        String header = "%PDF-1.4\n" +
-                "1 0 obj\n" +
-                "<< /Type /Catalog /Pages 2 0 R >>\n" +
-                "endobj\n" +
-                "2 0 obj\n" +
-                "<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n" +
-                "endobj\n" +
-                "3 0 obj\n" +
-                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>\n" +
-                "endobj\n" +
-                "4 0 obj\n" +
-                "<< /Length " + streamLength + " >>\n" +
-                "stream\n";
-
-        String footer = "\nendstream\n" +
-                "endobj\n" +
-                "xref\n" +
-                "0 5\n" +
-                "0000000000 65535 f \n" +
-                "0000000009 00000 n \n" +
-                "0000000058 00000 n \n" +
-                "0000000115 00000 n \n" +
-                "0000000282 00000 n \n" +
-                "trailer\n" +
-                "<< /Size 5 /Root 1 0 R >>\n" +
-                "startxref\n" +
-                "650\n" +
-                "%%EOF";
-
-        byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
-        byte[] footerBytes = footer.getBytes(StandardCharsets.UTF_8);
-
-        byte[] pdfBytes = new byte[headerBytes.length + textStreamBytes.length + footerBytes.length];
-        System.arraycopy(headerBytes, 0, pdfBytes, 0, headerBytes.length);
-        System.arraycopy(textStreamBytes, 0, pdfBytes, headerBytes.length, textStreamBytes.length);
-        System.arraycopy(footerBytes, 0, pdfBytes, headerBytes.length + textStreamBytes.length, footerBytes.length);
-
-        return pdfBytes;
-    }
-
-    private String generateQrPdfVector(String url) {
-        try {
-            io.nayuki.qrcodegen.QrCode qr = io.nayuki.qrcodegen.QrCode.encodeText(url, io.nayuki.qrcodegen.QrCode.Ecc.MEDIUM);
-            StringBuilder sb = new StringBuilder();
-            double scale = 2.5;
-            double offsetX = 440;
-            double offsetY = 120;
-            for (int y = 0; y < qr.size; y++) {
-                for (int x = 0; x < qr.size; x++) {
-                    if (qr.getModule(x, y)) {
-                        double px = offsetX + x * scale;
-                        double py = offsetY + (qr.size - 1 - y) * scale;
-                        sb.append(String.format(Locale.US, "%.1f %.1f %.1f %.1f re\n", px, py, scale, scale));
-                    }
-                }
-            }
-            sb.append("f\n");
-            return sb.toString();
-        } catch (Exception e) {
-            return "";
         }
     }
 
