@@ -43,6 +43,9 @@ public class SolicitudDocumentoController {
     @Value("${app.upload.dir}")
     private String uploadDir;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
     private static final Map<TipoDocumento, String> TIPO_DOCUMENTO_LABELS = Map.of(
             TipoDocumento.CERTIFICADO_ESTUDIOS, "Certificado de Estudios",
             TipoDocumento.CONSTANCIA_MATRICULA, "Constancia de Matrícula",
@@ -138,7 +141,7 @@ public class SolicitudDocumentoController {
                 Path filePath = dirPath.resolve(filename);
 
                 String label = TIPO_DOCUMENTO_LABELS.getOrDefault(solicitud.getTipo(), "Constancia Académica");
-                String urlVerificacion = "http://localhost:8080/api/solicitudes-documento/verificar/"
+                String urlVerificacion = baseUrl + "/api/solicitudes-documento/verificar/"
                         + solicitud.getCodigoVerificacion();
 
                 byte[] pdfBytes = certificadoPdfService.generar(solicitud, label, urlVerificacion);
