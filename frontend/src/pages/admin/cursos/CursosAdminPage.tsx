@@ -130,10 +130,11 @@ export default function CursosAdminPage() {
     return c.especialidad.id === Number(filtroEspecialidad)
   })
 
-  // Prerrequisitos viables (excluyendo el curso actual si se edita)
+  // Prerrequisitos viables: misma especialidad, ciclo menor y distinto al curso en edicion
   const prerrequisitosViables = cursos.filter((c) => {
-    if (!editando) return true
-    return c.id !== editando.id
+    if (editando && c.id === editando.id) return false
+    if (c.especialidad.id !== form.especialidadId) return false
+    return c.ciclo < form.ciclo
   })
 
   return (
@@ -351,7 +352,10 @@ export default function CursosAdminPage() {
               <select
                 className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
                 value={form.especialidadId}
-                onChange={(e) => actualizar('especialidadId', Number(e.target.value))}
+                onChange={(e) => {
+                  actualizar('especialidadId', Number(e.target.value))
+                  actualizar('prerequisitoId', null)
+                }}
                 disabled={procesando}
               >
                 {especialidades.map((esp) => (
@@ -371,9 +375,12 @@ export default function CursosAdminPage() {
               >
                 <option value="">Ninguno</option>
                 {prerrequisitosViables.map((c) => (
-                  <option key={c.id} value={c.id}>[{c.codigo}] {c.nombre}</option>
+                  <option key={c.id} value={c.id}>[{c.codigo}] {c.nombre} (ciclo {c.ciclo})</option>
                 ))}
               </select>
+              <p className="text-[11px] text-neutral-400">
+                Solo cursos de la misma especialidad y de ciclo menor.
+              </p>
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-neutral-100">

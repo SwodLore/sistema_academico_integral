@@ -30,6 +30,7 @@ export default function HorariosAdminPage() {
 
   // Filters
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>('')
+  const [filtroEspecialidad, setFiltroEspecialidad] = useState<string>('')
   const [busqueda, setBusqueda] = useState<string>('')
 
   // Modals state
@@ -213,13 +214,19 @@ export default function HorariosAdminPage() {
   function limpiarFiltros() {
     setBusqueda('')
     setFiltroPeriodo('')
+    setFiltroEspecialidad('')
   }
 
   // Filter calculations
   const periodosDisponibles = Array.from(new Set(asignaciones.map((a) => a.periodo.codigo))).sort()
 
+  const especialidadesDisponibles = Array.from(
+    new Map(asignaciones.map((a) => [a.curso.especialidad.id, a.curso.especialidad])).values()
+  ).sort((a, b) => a.nombre.localeCompare(b.nombre))
+
   const asignacionesFiltradas = asignaciones.filter((a) => {
     const matchesPeriodo = !filtroPeriodo || a.periodo.codigo === filtroPeriodo
+    const matchesEspecialidad = !filtroEspecialidad || a.curso.especialidad.id === Number(filtroEspecialidad)
     
     const query = busqueda.toLowerCase().trim()
     const matchesBusqueda =
@@ -230,7 +237,7 @@ export default function HorariosAdminPage() {
       a.docente.usuario.apellidos.toLowerCase().includes(query) ||
       (a.horarios && a.horarios.some(h => h.aula?.toLowerCase().includes(query)))
 
-    return matchesPeriodo && matchesBusqueda
+    return matchesPeriodo && matchesEspecialidad && matchesBusqueda
   })
 
   return (
@@ -273,6 +280,22 @@ export default function HorariosAdminPage() {
               </div>
 
               <div className="space-y-1.5 shrink-0 w-full md:w-auto">
+                <label className="text-[11px] font-bold text-neutral-550 uppercase tracking-wider">Especialidad</label>
+                <select
+                  className="h-10 w-full md:w-[220px] rounded-lg border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all shadow-sm font-semibold"
+                  value={filtroEspecialidad}
+                  onChange={(e) => setFiltroEspecialidad(e.target.value)}
+                >
+                  <option value="">Todas las especialidades</option>
+                  {especialidadesDisponibles.map((esp) => (
+                    <option key={esp.id} value={esp.id}>
+                      {esp.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5 shrink-0 w-full md:w-auto">
                 <label className="text-[11px] font-bold text-neutral-550 uppercase tracking-wider">Semestre académico</label>
                 <select
                   className="h-10 w-full md:w-[200px] rounded-lg border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 focus:outline-none transition-all shadow-sm font-semibold"
@@ -288,7 +311,7 @@ export default function HorariosAdminPage() {
                 </select>
               </div>
 
-              {(busqueda || filtroPeriodo) && (
+              {(busqueda || filtroPeriodo || filtroEspecialidad) && (
                 <Button
                   onClick={limpiarFiltros}
                   variant="ghost"
@@ -302,7 +325,7 @@ export default function HorariosAdminPage() {
         </Card>
 
         {/* Info matches indicator */}
-        {(busqueda || filtroPeriodo) && (
+        {(busqueda || filtroPeriodo || filtroEspecialidad) && (
           <div className="text-xs font-semibold text-neutral-500 px-1">
             Resultados de búsqueda: Mostrando <span className="text-neutral-900 font-bold">{asignacionesFiltradas.length}</span> de <span className="text-neutral-900 font-bold">{asignaciones.length}</span> asignaciones.
           </div>

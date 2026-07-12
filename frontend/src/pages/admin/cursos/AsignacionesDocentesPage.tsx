@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { Badge } from '@/components/ui/badge'
 import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, RefreshCw, AlertCircle, Trash } from 'lucide-react'
 import { cursosApi, type AsignacionPayload } from '@/api/cursos'
-import type { Curso, Docente, AsignacionConHorarios, HorarioSimplificado } from '@/types'
+import { catalogosApi } from '@/api'
+import type { Curso, Docente, Especialidad, AsignacionConHorarios, HorarioSimplificado } from '@/types'
 import { DIA_SEMANA_LABELS } from '@/types/horario'
 
 const INITIAL_HORARIO: HorarioSimplificado = {
@@ -16,6 +17,7 @@ const INITIAL_HORARIO: HorarioSimplificado = {
 }
 
 const INITIAL_FORM = {
+  especialidadId: 0,
   cursoId: 0,
   docenteId: 0,
   anio: new Date().getFullYear(),
@@ -29,10 +31,12 @@ export default function AsignacionesDocentesPage() {
   const [asignaciones, setAsignaciones] = useState<AsignacionConHorarios[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
   const [docentes, setDocentes] = useState<Docente[]>([])
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([])
   const [cargando, setCargando] = useState(true)
 
   // Filters
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>('')
+  const [filtroEspecialidad, setFiltroEspecialidad] = useState<string>('')
   
   // Dialog State
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -49,14 +53,16 @@ export default function AsignacionesDocentesPage() {
   async function cargarDatos() {
     setCargando(true)
     try {
-      const [listadoAsignaciones, listadoCursos, listadoDocentes] = await Promise.all([
+      const [listadoAsignaciones, listadoCursos, listadoDocentes, listadoEspecialidades] = await Promise.all([
         cursosApi.listarAsignaciones(),
         cursosApi.listar(),
         cursosApi.listarDocentes(),
+        catalogosApi.especialidades(),
       ])
       setAsignaciones(listadoAsignaciones)
       setCursos(listadoCursos)
       setDocentes(listadoDocentes)
+      setEspecialidades(listadoEspecialidades)
     } catch (e) {
       console.error('Error al cargar asignaciones', e)
     } finally {
@@ -64,11 +70,35 @@ export default function AsignacionesDocentesPage() {
     }
   }
 
+  // Cursos de la especialidad elegida y docentes de la facultad de esa especialidad
+  const especialidadForm = especialidades.find((e) => e.id === form.especialidadId)
+  const cursosDeEspecialidad = cursos.filter((c) => c.especialidad.id === form.especialidadId)
+  const docentesDeFacultad = docentes.filter(
+    (d) => d.facultad && especialidadForm && d.facultad.id === especialidadForm.facultad.id
+  )
+
+  function seleccionarEspecialidad(especialidadId: number) {
+    const cursosFiltrados = cursos.filter((c) => c.especialidad.id === especialidadId)
+    const esp = especialidades.find((e) => e.id === especialidadId)
+    const docentesFiltrados = docentes.filter((d) => d.facultad && esp && d.facultad.id === esp.facultad.id)
+    setForm((prev) => ({
+      ...prev,
+      especialidadId,
+      cursoId: cursosFiltrados[0]?.id ?? 0,
+      docenteId: docentesFiltrados[0]?.id ?? 0,
+    }))
+  }
+
   function abrirNueva() {
     setEditando(null)
+    const especialidadId = especialidades[0]?.id ?? 0
+    const cursosFiltrados = cursos.filter((c) => c.especialidad.id === especialidadId)
+    const esp = especialidades.find((e) => e.id === especialidadId)
+    const docentesFiltrados = docentes.filter((d) => d.facultad && esp && d.facultad.id === esp.facultad.id)
     setForm({
-      cursoId: cursos[0]?.id ?? 0,
-      docenteId: docentes[0]?.id ?? 0,
+      especialidadId,
+      cursoId: cursosFiltrados[0]?.id ?? 0,
+      docenteId: docentesFiltrados[0]?.id ?? 0,
       anio: new Date().getFullYear(),
       semestre: 'I',
       seccion: 'A',
@@ -83,6 +113,7 @@ export default function AsignacionesDocentesPage() {
   function abrirEditar(asig: AsignacionConHorarios) {
     setEditando(asig)
     setForm({
+      especialidadId: asig.curso.especialidad.id,
       cursoId: asig.curso.id,
       docenteId: asig.docente.id,
       anio: asig.periodo.anio,
@@ -188,8 +219,9 @@ export default function AsignacionesDocentesPage() {
   const periodosDisponibles = Array.from(new Set(asignaciones.map((a) => a.periodo.codigo))).sort()
 
   const asignacionesFiltradas = asignaciones.filter((a) => {
-    if (!filtroPeriodo) return true
-    return a.periodo.codigo === filtroPeriodo
+    if (filtroPeriodo && a.periodo.codigo !== filtroPeriodo) return false
+    if (filtroEspecialidad && a.curso.especialidad.id !== Number(filtroEspecialidad)) return false
+    return true
   })
 
   return (
@@ -212,7 +244,18 @@ export default function AsignacionesDocentesPage() {
                 <CardTitle className="text-lg font-bold">Asignaciones de Carga Académica</CardTitle>
                 <CardDescription>Cursos asignados, docentes y sus respectivos horarios</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-neutral-500 whitespace-nowrap">Especialidad:</span>
+                <select
+                  className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-500 focus:outline-none"
+                  value={filtroEspecialidad}
+                  onChange={(e) => setFiltroEspecialidad(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {especialidades.map((esp) => (
+                    <option key={esp.id} value={esp.id}>{esp.nombre}</option>
+                  ))}
+                </select>
                 <span className="text-xs font-semibold text-neutral-500 whitespace-nowrap">Semestre Académico:</span>
                 <select
                   className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm focus:border-neutral-500 focus:outline-none"
@@ -266,6 +309,9 @@ export default function AsignacionesDocentesPage() {
                             </span>
                             <Badge variant="outline" className="font-extrabold text-[9px] px-1.5 py-0">
                               Secc. {asig.seccion}
+                            </Badge>
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 text-neutral-500">
+                              {asig.curso.especialidad.codigo}
                             </Badge>
                           </div>
                         </td>
@@ -354,6 +400,20 @@ export default function AsignacionesDocentesPage() {
           )}
 
           <div className="mt-4 space-y-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Especialidad</label>
+              <select
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+                value={form.especialidadId}
+                onChange={(e) => seleccionarEspecialidad(Number(e.target.value))}
+                disabled={procesando}
+              >
+                {especialidades.map((esp) => (
+                  <option key={esp.id} value={esp.id}>{esp.nombre} — {esp.facultad.nombre}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Curso</label>
@@ -363,10 +423,13 @@ export default function AsignacionesDocentesPage() {
                   onChange={(e) => actualizarCampo('cursoId', Number(e.target.value))}
                   disabled={procesando}
                 >
-                  {cursos.map((c) => (
+                  {cursosDeEspecialidad.map((c) => (
                     <option key={c.id} value={c.id}>[{c.codigo}] {c.nombre}</option>
                   ))}
                 </select>
+                {cursosDeEspecialidad.length === 0 && (
+                  <p className="text-[11px] text-amber-600 font-medium">Esta especialidad no tiene cursos registrados.</p>
+                )}
                 {errores.cursoId && <p className="text-[11px] text-red-600 font-medium">{errores.cursoId}</p>}
               </div>
 
@@ -378,12 +441,15 @@ export default function AsignacionesDocentesPage() {
                   onChange={(e) => actualizarCampo('docenteId', Number(e.target.value))}
                   disabled={procesando}
                 >
-                  {docentes.map((d) => (
+                  {docentesDeFacultad.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.usuario.nombres} {d.usuario.apellidos} ({d.gradoAcademico})
                     </option>
                   ))}
                 </select>
+                {docentesDeFacultad.length === 0 && (
+                  <p className="text-[11px] text-amber-600 font-medium">No hay docentes de esta facultad.</p>
+                )}
                 {errores.docenteId && <p className="text-[11px] text-red-600 font-medium">{errores.docenteId}</p>}
               </div>
             </div>

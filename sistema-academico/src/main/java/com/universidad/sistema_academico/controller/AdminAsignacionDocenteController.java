@@ -180,8 +180,14 @@ public class AdminAsignacionDocenteController {
     }
 
     @GetMapping("/asignaciones")
-    public List<AsignacionDocenteResponseDTO> listarAsignaciones() {
+    public List<AsignacionDocenteResponseDTO> listarAsignaciones(
+            @RequestParam(required = false) Long especialidadId) {
         List<AsignacionDocente> asignaciones = asignacionRepository.findAll();
+        if (especialidadId != null) {
+            asignaciones = asignaciones.stream()
+                    .filter(a -> a.getCurso().getEspecialidad().getId().equals(especialidadId))
+                    .collect(Collectors.toList());
+        }
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
         return asignaciones.stream().map(a -> {
@@ -223,6 +229,7 @@ public class AdminAsignacionDocenteController {
                     .orElseThrow(() -> new RuntimeException("El curso no existe"));
             Docente docente = docenteRepository.findById(request.getDocenteId())
                     .orElseThrow(() -> new RuntimeException("El docente no existe"));
+            validarFacultadDocente(docente, curso);
 
             AsignacionDocente asignacion = new AsignacionDocente();
             asignacion.setCurso(curso);
@@ -258,6 +265,7 @@ public class AdminAsignacionDocenteController {
                     .orElseThrow(() -> new RuntimeException("El curso no existe"));
             Docente docente = docenteRepository.findById(request.getDocenteId())
                     .orElseThrow(() -> new RuntimeException("El docente no existe"));
+            validarFacultadDocente(docente, curso);
 
             asignacion.setCurso(curso);
             asignacion.setDocente(docente);
@@ -299,6 +307,15 @@ public class AdminAsignacionDocenteController {
             return ResponseEntity.ok(Map.of("message", "Asignación docente y sus horarios eliminados correctamente"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** El docente debe pertenecer a la facultad de la especialidad del curso */
+    private void validarFacultadDocente(Docente docente, Curso curso) {
+        Facultad facultadCurso = curso.getEspecialidad().getFacultad();
+        if (docente.getFacultad() == null || !docente.getFacultad().getId().equals(facultadCurso.getId())) {
+            throw new RuntimeException("El docente pertenece a otra facultad: este curso requiere un docente de la "
+                    + facultadCurso.getNombre());
         }
     }
 

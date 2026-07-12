@@ -65,6 +65,7 @@ public class AdminCursoController {
             if (request.getPrerequisitoId() != null) {
                 Curso prereq = cursoRepository.findById(request.getPrerequisitoId())
                         .orElseThrow(() -> new RuntimeException("El prerequisito especificado no existe"));
+                validarPrerequisito(prereq, especialidad, request.getCiclo());
                 curso.setPrerequisito(prereq);
             }
 
@@ -97,6 +98,7 @@ public class AdminCursoController {
                 }
                 Curso prereq = cursoRepository.findById(request.getPrerequisitoId())
                         .orElseThrow(() -> new RuntimeException("El prerequisito especificado no existe"));
+                validarPrerequisito(prereq, especialidad, request.getCiclo());
                 curso.setPrerequisito(prereq);
             } else {
                 curso.setPrerequisito(null);
@@ -135,6 +137,16 @@ public class AdminCursoController {
             return ResponseEntity.ok(Map.of("message", "Curso eliminado correctamente"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** El prerequisito debe ser de la misma especialidad y de un ciclo anterior al del curso */
+    private void validarPrerequisito(Curso prereq, Especialidad especialidad, Integer ciclo) {
+        if (!prereq.getEspecialidad().getId().equals(especialidad.getId())) {
+            throw new RuntimeException("El prerequisito debe pertenecer a la misma especialidad del curso");
+        }
+        if (ciclo != null && prereq.getCiclo() >= ciclo) {
+            throw new RuntimeException("El prerequisito debe ser de un ciclo menor al del curso");
         }
     }
 
