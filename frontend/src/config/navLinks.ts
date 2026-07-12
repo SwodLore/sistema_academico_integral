@@ -64,10 +64,14 @@ export function getNavSections(rol: Rol): NavSection[] {
   }
 
   if (rol === 'ADMINISTRADOR' || rol === 'DIRECCION') {
+    const inicio: NavLink = rol === 'DIRECCION'
+      ? { to: '/direccion', label: 'Panel de Dirección', icon: LayoutDashboard }
+      : { to: '/admin', label: 'Administración', icon: LayoutDashboard }
+
     const secciones: NavSection[] = [
       {
         titulo: 'General',
-        links: [{ to: '/admin', label: 'Administración', icon: LayoutDashboard }],
+        links: [inicio],
       },
       {
         titulo: 'Gestión académica',

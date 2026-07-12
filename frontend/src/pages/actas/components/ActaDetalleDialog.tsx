@@ -104,10 +104,10 @@ export default function ActaDetalleDialog({ acta, procesando, onCerrar, onValida
                 <thead>
                   <tr className="bg-neutral-50 border-b border-neutral-200 text-left">
                     <th className="px-3 py-2 font-semibold text-neutral-600">Estudiante</th>
-                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">P1</th>
-                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">P2</th>
-                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">Prac.</th>
-                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">Final</th>
+                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">P1 ({detalle.pesoParcial1}%)</th>
+                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">P2 ({detalle.pesoParcial2}%)</th>
+                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">Prac. ({detalle.pesoPracticas}%)</th>
+                    <th className="px-2 py-2 font-semibold text-neutral-600 text-center">Final ({detalle.pesoNotaFinal}%)</th>
                     <th className="px-2 py-2 font-semibold text-neutral-600 text-center">Prom.</th>
                     <th className="px-3 py-2 font-semibold text-neutral-600 text-center">Estado</th>
                   </tr>

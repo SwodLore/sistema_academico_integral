@@ -26,6 +26,7 @@ import ReportesPage from '@/pages/reportes/ReportesPage'
 import CohortesPage from '@/pages/cohortes/CohortesPage'
 import EstadisticasMatriculaPage from '@/pages/admin/EstadisticasMatriculaPage'
 import CumplimientoPlanPage from '@/pages/admin/CumplimientoPlanPage'
+import DireccionDashboardPage from '@/pages/direccion/DireccionDashboardPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute roles={['ADMINISTRADOR', 'DIRECCION']} />,
     children: [
       { path: '/admin', element: <AdminPage /> },
+      { path: '/direccion', element: <DireccionDashboardPage /> },
       { path: '/admin/carga-docente', element: <CargaDocentePage /> },
       { path: '/admin/certificados', element: <CertificadosAdminPage /> },
       { path: '/admin/actas', element: <ActasPage /> },

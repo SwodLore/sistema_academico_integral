@@ -186,10 +186,10 @@ export default function NotasPage() {
                     <th className="px-4 py-3 font-semibold text-neutral-600">#</th>
                     <th className="px-4 py-3 font-semibold text-neutral-600">Curso</th>
                     <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Créd.</th>
-                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 1</th>
-                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 2</th>
-                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Prácticas</th>
-                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Ex. Final</th>
+                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 1 ({hoja.pesoParcial1}%)</th>
+                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 2 ({hoja.pesoParcial2}%)</th>
+                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Prácticas ({hoja.pesoPracticas}%)</th>
+                    <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Ex. Final ({hoja.pesoNotaFinal}%)</th>
                     <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Promedio</th>
                     <th className="px-4 py-3 font-semibold text-neutral-600 text-center">Estado</th>
                   </tr>

@@ -322,10 +322,10 @@ export default function RegistrarNotasPage() {
               <tr className="bg-neutral-50 border-b border-neutral-200 text-left">
                 <th className="px-4 py-3 font-semibold text-neutral-600">#</th>
                 <th className="px-4 py-3 font-semibold text-neutral-600">Estudiante</th>
-                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 1</th>
-                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 2</th>
-                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Prácticas</th>
-                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Ex. Final</th>
+                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 1 ({pesos.parcial1}%)</th>
+                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Parcial 2 ({pesos.parcial2}%)</th>
+                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Prácticas ({pesos.practicas}%)</th>
+                <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Ex. Final ({pesos.notaFinal}%)</th>
                 <th className="px-3 py-3 font-semibold text-neutral-600 text-center">Promedio</th>
                 <th className="px-4 py-3 font-semibold text-neutral-600 text-center">Estado</th>
               </tr>
