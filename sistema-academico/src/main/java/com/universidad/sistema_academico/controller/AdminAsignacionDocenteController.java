@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +44,9 @@ public class AdminAsignacionDocenteController {
 
     @Autowired
     private DetalleMatriculaRepository detalleMatriculaRepository;
+
+    @Autowired
+    private EspecialidadRepository especialidadRepository;
 
     @GetMapping("/docentes")
     public List<Docente> listarDocentes() {
@@ -174,6 +179,86 @@ public class AdminAsignacionDocenteController {
             }
 
             return ResponseEntity.ok(new DocenteCargaAcademicaResponse(totalCreditos, totalHoras, cursosDTO));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** Direccion/Admin: cumplimiento del plan de estudios de una especialidad en un periodo */
+    @GetMapping("/cumplimiento-plan")
+    public ResponseEntity<?> cumplimientoPlan(@RequestParam Long especialidadId,
+                                              @RequestParam(required = false) Integer anio,
+                                              @RequestParam(required = false) String semestre) {
+        try {
+            Especialidad especialidad = especialidadRepository.findById(especialidadId)
+                    .orElseThrow(() -> new RuntimeException("La especialidad no existe"));
+
+            PeriodoAcademico periodo = (anio != null && semestre != null && !semestre.trim().isEmpty())
+                    ? periodoRepository.findByAnioAndSemestre(anio, semestre)
+                            .orElseThrow(() -> new RuntimeException("El periodo academico no existe"))
+                    : periodoRepository.findByActivoTrue()
+                            .orElseThrow(() -> new RuntimeException("No hay un periodo academico activo"));
+
+            List<Curso> plan = cursoRepository.findAll().stream()
+                    .filter(c -> c.getEspecialidad().getId().equals(especialidadId))
+                    .sorted(Comparator.comparing(Curso::getCiclo).thenComparing(Curso::getCodigo))
+                    .toList();
+
+            Map<Long, List<AsignacionDocente>> asignacionesPorCurso = asignacionRepository
+                    .findByPeriodoIdAndCursoEspecialidadId(periodo.getId(), especialidadId).stream()
+                    .collect(Collectors.groupingBy(a -> a.getCurso().getId()));
+
+            List<Map<String, Object>> cursos = new ArrayList<>();
+            int conDocente = 0, conHorario = 0, conSilabo = 0, completos = 0;
+
+            for (Curso curso : plan) {
+                List<AsignacionDocente> asignaciones = asignacionesPorCurso.getOrDefault(curso.getId(), List.of());
+
+                boolean docente = !asignaciones.isEmpty();
+                boolean horario = asignaciones.stream()
+                        .anyMatch(a -> !horarioRepository.findByAsignacionId(a.getId()).isEmpty());
+                boolean silabo = asignaciones.stream()
+                        .anyMatch(a -> a.getSilaboUrl() != null || a.getFechaCargaSilabo() != null
+                                || a.getContenido() != null);
+
+                if (docente) conDocente++;
+                if (horario) conHorario++;
+                if (silabo) conSilabo++;
+                if (docente && horario && silabo) completos++;
+
+                Map<String, Object> fila = new LinkedHashMap<>();
+                fila.put("cursoId", curso.getId());
+                fila.put("codigo", curso.getCodigo());
+                fila.put("nombre", curso.getNombre());
+                fila.put("ciclo", curso.getCiclo());
+                fila.put("docenteAsignado", docente);
+                fila.put("docente", docente
+                        ? asignaciones.get(0).getDocente().getUsuario().getNombres() + " "
+                                + asignaciones.get(0).getDocente().getUsuario().getApellidos()
+                        : null);
+                fila.put("horario", horario);
+                fila.put("silabo", silabo);
+                cursos.add(fila);
+            }
+
+            int total = plan.size();
+            int porcentaje = total == 0 ? 0 : Math.round((conDocente + conHorario + conSilabo) * 100f / (total * 3));
+
+            Map<String, Object> resumen = new LinkedHashMap<>();
+            resumen.put("totalCursos", total);
+            resumen.put("conDocente", conDocente);
+            resumen.put("conHorario", conHorario);
+            resumen.put("conSilabo", conSilabo);
+            resumen.put("cursosCompletos", completos);
+            resumen.put("porcentaje", porcentaje);
+
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("periodo", periodo.getCodigo());
+            respuesta.put("especialidad", especialidad.getNombre());
+            respuesta.put("resumen", resumen);
+            respuesta.put("cursos", cursos);
+
+            return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

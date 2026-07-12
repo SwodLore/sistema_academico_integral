@@ -21,6 +21,29 @@ export interface AsignacionPayload {
   horarios: HorarioSimplificado[]
 }
 
+export interface CumplimientoPlan {
+  periodo: string
+  especialidad: string
+  resumen: {
+    totalCursos: number
+    conDocente: number
+    conHorario: number
+    conSilabo: number
+    cursosCompletos: number
+    porcentaje: number
+  }
+  cursos: {
+    cursoId: number
+    codigo: string
+    nombre: string
+    ciclo: number
+    docenteAsignado: boolean
+    docente: string | null
+    horario: boolean
+    silabo: boolean
+  }[]
+}
+
 export const cursosApi = {
   // Cursos CRUD
   listar: () => api.get<Curso[]>('/admin/cursos').then((r) => r.data),
@@ -35,4 +58,7 @@ export const cursosApi = {
   crearAsignacion: (datos: AsignacionPayload) => api.post<{ message: string; id: number }>('/admin/asignaciones', datos).then((r) => r.data),
   editarAsignacion: (id: number, datos: AsignacionPayload) => api.put<{ message: string }>(`/admin/asignaciones/${id}`, datos).then((r) => r.data),
   eliminarAsignacion: (id: number) => api.delete<{ message: string }>(`/admin/asignaciones/${id}`).then((r) => r.data),
+
+  cumplimientoPlan: (params: { especialidadId: number; anio?: number; semestre?: string }) =>
+    api.get<CumplimientoPlan>('/admin/cumplimiento-plan', { params }).then((r) => r.data),
 }
