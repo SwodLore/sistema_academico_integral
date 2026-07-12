@@ -103,7 +103,10 @@ public class MatriculaController {
     public ResponseEntity<?> ficha(@AuthenticationPrincipal Usuario usuario, @PathVariable Long id) {
         try {
             Matricula matricula = matriculaService.matriculaDelEstudiante(usuario, id);
-            byte[] pdf = matriculaService.fichaPdf(matricula);
+            if (matricula.getEstado() != EstadoMatricula.MATRICULADO) {
+                throw new RuntimeException("Tu ficha estara disponible cuando el administrador valide tu pago y matricula");
+            }
+            byte[] pdf = matriculaService.fichaOficialPdf(matricula);
 
             String nombreArchivo = "ficha_" + matricula.getEstudiante().getCodigoEstudiante()
                     + "_" + matricula.getPeriodo().getCodigo() + ".pdf";
@@ -130,6 +133,34 @@ public class MatriculaController {
 
         try {
             return ResponseEntity.ok(matriculaService.solicitar(usuario, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** El estudiante sube su voucher de pago para que el administrador lo valide */
+    @PostMapping(value = "/{id}/voucher", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ESTUDIANTE')")
+    public ResponseEntity<?> subirVoucher(@AuthenticationPrincipal Usuario usuario,
+                                          @PathVariable Long id,
+                                          @RequestParam BigDecimal monto,
+                                          @RequestParam String numeroRecibo,
+                                          @RequestParam(required = false) String metodoPago,
+                                          @RequestParam(required = false) MultipartFile comprobante) {
+        try {
+            return ResponseEntity.ok(matriculaService.subirVoucher(usuario, id, monto, numeroRecibo, metodoPago, comprobante));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /** Direccion/Admin: estadisticas de matricula del periodo */
+    @GetMapping("/estadisticas")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'DIRECCION')")
+    public ResponseEntity<?> estadisticas(@RequestParam(required = false) Integer anio,
+                                          @RequestParam(required = false) String semestre) {
+        try {
+            return ResponseEntity.ok(matriculaService.estadisticas(anio, semestre));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

@@ -4,9 +4,16 @@ import { Button } from '@/components/ui/button'
 interface Props {
   procesando: boolean
   onRegistrar: (datos: FormData) => void
+  titulo?: string
+  textoBoton?: string
 }
 
-export default function RegistrarPagoForm({ procesando, onRegistrar }: Props) {
+export default function RegistrarPagoForm({
+  procesando,
+  onRegistrar,
+  titulo = 'Registrar pago',
+  textoBoton = 'Registrar pago',
+}: Props) {
   const [monto, setMonto] = useState('')
   const [numeroRecibo, setNumeroRecibo] = useState('')
   const [metodoPago, setMetodoPago] = useState('EFECTIVO')
@@ -25,7 +32,7 @@ export default function RegistrarPagoForm({ procesando, onRegistrar }: Props) {
 
   return (
     <div className="mt-5 border-t pt-4 space-y-3">
-      <p className="text-sm font-medium text-neutral-700">Registrar pago</p>
+      <p className="text-sm font-medium text-neutral-700">{titulo}</p>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs text-neutral-500">Monto (S/.)</label>
@@ -72,7 +79,7 @@ export default function RegistrarPagoForm({ procesando, onRegistrar }: Props) {
         />
       </div>
       <Button className="w-full" disabled={procesando || !puedePagar} onClick={registrar}>
-        {procesando ? 'Registrando...' : 'Registrar pago'}
+        {procesando ? 'Enviando...' : textoBoton}
       </Button>
     </div>
   )

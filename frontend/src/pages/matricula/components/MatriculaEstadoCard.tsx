@@ -1,18 +1,29 @@
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ESTADO_MATRICULA_LABELS, ESTADO_MATRICULA_VARIANTS, type CursoDisponible, type Matricula } from '@/types'
+import RegistrarPagoForm from '@/pages/admin/components/RegistrarPagoForm'
 
 interface Props {
   matricula: Matricula
   cursos: CursoDisponible[]
   descargando: boolean
+  enviando: boolean
   onDescargar: () => void
+  onSubirVoucher: (datos: FormData) => void
   onVerSilabo?: (asignacionId: number) => void
 }
 
-export default function MatriculaEstadoCard({ matricula, cursos, descargando, onDescargar, onVerSilabo }: Props) {
+export default function MatriculaEstadoCard({
+  matricula,
+  cursos,
+  descargando,
+  enviando,
+  onDescargar,
+  onSubirVoucher,
+  onVerSilabo,
+}: Props) {
   const totalCreditos = cursos.reduce((total, curso) => total + curso.creditos, 0)
 
   return (
@@ -73,9 +84,41 @@ export default function MatriculaEstadoCard({ matricula, cursos, descargando, on
 
           <p className="text-sm text-neutral-600">Total: {totalCreditos} creditos</p>
 
-          <Button className="w-full" disabled={descargando} onClick={onDescargar}>
-            {descargando ? 'Descargando...' : 'Descargar ficha (PDF)'}
-          </Button>
+          {matricula.estado === 'PENDIENTE' && (
+            <div>
+              <p className="text-sm text-amber-700 bg-amber-50 rounded-md p-3">
+                Tu solicitud fue reservada. Para completar tu matricula, sube el voucher de tu pago y
+                espera la validacion del administrador.
+              </p>
+              <RegistrarPagoForm
+                procesando={enviando}
+                onRegistrar={onSubirVoucher}
+                titulo="Subir voucher de pago"
+                textoBoton="Enviar pago"
+              />
+            </div>
+          )}
+
+          {matricula.estado === 'PAGADA' && (
+            <p className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 rounded-md p-3">
+              <Clock className="size-4 shrink-0" />
+              Tu pago fue enviado y esta siendo revisado por el administrador. Cuando lo valide, podras
+              descargar tu ficha oficial aqui.
+            </p>
+          )}
+
+          {matricula.estado === 'MATRICULADO' && (
+            <div className="space-y-2">
+              {matricula.numeroFicha && (
+                <p className="text-sm text-green-700 bg-green-50 rounded-md p-3">
+                  Matricula validada. Ficha oficial: <span className="font-semibold">{matricula.numeroFicha}</span>
+                </p>
+              )}
+              <Button className="w-full" disabled={descargando} onClick={onDescargar}>
+                {descargando ? 'Descargando...' : 'Descargar ficha oficial (PDF)'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </>

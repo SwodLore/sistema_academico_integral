@@ -1,5 +1,12 @@
 import { api } from './axios'
-import type { CursoDisponible, CursosDisponibles, EstadoMatricula, Matricula, Pago } from '@/types'
+import type {
+  CursoDisponible,
+  CursosDisponibles,
+  EstadisticasMatricula,
+  EstadoMatricula,
+  Matricula,
+  Pago,
+} from '@/types'
 
 export interface SolicitudMatriculaPayload {
   ciclo: number
@@ -41,6 +48,12 @@ export const matriculasApi = {
 
   registrarPago: (id: number, datos: FormData) =>
     api.post<Pago>(`/matriculas/${id}/pago`, datos).then((r) => r.data),
+
+  subirVoucher: (id: number, datos: FormData) =>
+    api.post<Pago>(`/matriculas/${id}/voucher`, datos).then((r) => r.data),
+
+  estadisticas: (params?: { anio?: number; semestre?: string }) =>
+    api.get<EstadisticasMatricula>('/matriculas/estadisticas', { params }).then((r) => r.data),
 
   validar: (id: number, aprobado: boolean, observacion: string | null) =>
     api.put<Matricula>(`/matriculas/${id}/validar`, { aprobado, observacion }).then((r) => r.data),

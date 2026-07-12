@@ -65,5 +65,19 @@ export function useMiMatricula() {
     }
   }
 
-  return { cargando, enviando, descargando, matricula, cursosMatricula, oferta, solicitar, descargarFicha }
+  async function subirVoucher(datos: FormData) {
+    if (!matricula) return
+    setEnviando(true)
+    try {
+      await matriculasApi.subirVoucher(matricula.id, datos)
+      setMatricula({ ...matricula, estado: 'PAGADA' })
+      toast.success('Pago enviado. El administrador validara tu matricula.')
+    } catch (err) {
+      toast.error(getApiError(err))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return { cargando, enviando, descargando, matricula, cursosMatricula, oferta, solicitar, descargarFicha, subirVoucher }
 }

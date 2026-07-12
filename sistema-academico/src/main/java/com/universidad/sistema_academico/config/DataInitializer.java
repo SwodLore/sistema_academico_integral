@@ -45,6 +45,8 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private SolicitudDocumentoRepository solicitudDocumentoRepository;
     @Autowired
+    private PagoRepository pagoRepository;
+    @Autowired
     private LogAuditoriaRepository logAuditoriaRepository;
 
     @Override
@@ -143,8 +145,9 @@ public class DataInitializer implements CommandLineRunner {
                 "2025I-0003", admin);
         Matricula matriculaAct7 = crearMatricula(estudiante7, periodoActual, EstadoMatricula.MATRICULADO,
                 "2025I-0004", admin);
-        Matricula matriculaAct8 = crearMatricula(estudiante8, periodoActual, EstadoMatricula.VALIDADA,
-                null, admin);
+        Matricula matriculaAct8 = crearMatricula(estudiante8, periodoActual, EstadoMatricula.PAGADA,
+                null, null);
+        crearPago(matriculaAct8, estudiante8.getUsuario(), "350.00", "REC-2025-0008");
         Matricula matriculaAct2 = crearMatricula(estudiante2, periodoActual, EstadoMatricula.PENDIENTE, null, null);
         // estudiante4 y estudiante6 quedan sin matricula para probar el flujo completo
 
@@ -193,7 +196,7 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("  estudiante5@test.com (ciclo 3, matriculado)");
         System.out.println("  estudiante6@test.com (ciclo 1 ICI, SIN matricula)");
         System.out.println("  estudiante7@test.com (ciclo 5, con historial)");
-        System.out.println("  estudiante8@test.com (ciclo 3, matricula VALIDADA - probar pago)");
+        System.out.println("  estudiante8@test.com (ciclo 3, pago enviado - probar validacion del admin)");
     }
 
     private Usuario crearUsuario(String nombres, String apellidos, String email, String codigo, Rol rol) {
@@ -334,6 +337,16 @@ public class DataInitializer implements CommandLineRunner {
         matricula.setNumeroFicha(numeroFicha);
         matricula.setValidadaPor(validadaPor);
         return matriculaRepository.save(matricula);
+    }
+
+    private void crearPago(Matricula matricula, Usuario registradoPor, String monto, String numeroRecibo) {
+        Pago pago = new Pago();
+        pago.setMatricula(matricula);
+        pago.setMonto(new BigDecimal(monto));
+        pago.setNumeroRecibo(numeroRecibo);
+        pago.setMetodoPago("TRANSFERENCIA");
+        pago.setRegistradoPor(registradoPor);
+        pagoRepository.save(pago);
     }
 
     private DetalleMatricula crearDetalle(Matricula matricula, AsignacionDocente asignacion) {

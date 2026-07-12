@@ -22,10 +22,10 @@ export interface Matricula {
 }
 
 export const ESTADO_MATRICULA_LABELS: Record<EstadoMatricula, string> = {
-  PENDIENTE: 'Pendiente',
+  PENDIENTE: 'Pendiente de pago',
   VALIDADA: 'Validada',
   RECHAZADA: 'Rechazada',
-  PAGADA: 'Pagada',
+  PAGADA: 'Pago por validar',
   MATRICULADO: 'Matriculado',
 }
 
@@ -35,6 +35,20 @@ export const ESTADO_MATRICULA_VARIANTS: Record<EstadoMatricula, BadgeVariant> = 
   PENDIENTE: 'warning',
   VALIDADA: 'info',
   RECHAZADA: 'destructive',
-  PAGADA: 'success',
+  PAGADA: 'info',
   MATRICULADO: 'success',
+}
+
+// Respuesta de /matriculas/estadisticas
+export interface EstadisticasMatricula {
+  periodo: string
+  total: number
+  porEstado: Record<EstadoMatricula, number>
+  porEspecialidad: {
+    especialidad: string
+    solicitudes: number
+    matriculados: number
+    pendientes: number
+    rechazadas: number
+  }[]
 }

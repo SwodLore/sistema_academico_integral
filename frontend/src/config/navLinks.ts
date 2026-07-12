@@ -2,6 +2,7 @@ import {
   Award,
   BarChart3,
   BookOpen,
+  PieChart,
   Calendar,
   CalendarDays,
   ClipboardCheck,
@@ -89,6 +90,7 @@ export function getNavSections(rol: Rol): NavSection[] {
           { to: '/admin/indicadores', label: 'Indicadores', icon: BarChart3 },
           { to: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
           { to: '/admin/cohortes', label: 'Cohortes', icon: TrendingUp },
+          { to: '/admin/estadisticas-matricula', label: 'Estadísticas de Matrícula', icon: PieChart },
         ],
       },
     ]

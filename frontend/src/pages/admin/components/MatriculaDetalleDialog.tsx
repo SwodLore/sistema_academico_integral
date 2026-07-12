@@ -91,7 +91,41 @@ export default function MatriculaDetalleDialog({
         </div>
 
         {!cargando && detalle?.estado === 'PENDIENTE' && (
+          <div className="mt-5 border-t pt-4 space-y-3">
+            <p className="text-sm text-amber-700 bg-amber-50 rounded-md p-3">
+              Esperando que el estudiante suba su voucher de pago. Si pagó en ventanilla, puedes
+              registrar el pago aquí.
+            </p>
+            <RegistrarPagoForm procesando={procesando} onRegistrar={onRegistrarPago} />
+          </div>
+        )}
+
+        {!cargando && (detalle?.estado === 'PAGADA' || detalle?.estado === 'MATRICULADO') && pago && (
           <div className="mt-5 border-t pt-4">
+            <p className="text-sm font-medium text-neutral-700">Pago enviado</p>
+            <div className="text-sm text-neutral-600 space-y-1 mt-1">
+              <p>Monto: S/. {pago.monto}</p>
+              <p>Recibo: {pago.numeroRecibo}</p>
+              {pago.metodoPago && <p>Metodo: {pago.metodoPago}</p>}
+            </div>
+            {pago.comprobanteUrl && (
+              <a href={`${SERVER_ORIGIN}${pago.comprobanteUrl}`} target="_blank" rel="noreferrer" className="block">
+                <img
+                  src={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
+                  alt="Comprobante de pago"
+                  className="mt-2 max-h-64 rounded-md border"
+                />
+              </a>
+            )}
+          </div>
+        )}
+
+        {!cargando && detalle?.estado === 'PAGADA' && (
+          <div className="mt-4 border-t pt-4">
+            <p className="text-sm text-neutral-600 mb-3">
+              Revisa los requisitos y el pago. Al aprobar, la matricula queda oficializada y se genera
+              la ficha del estudiante.
+            </p>
             {rechazando ? (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-700">Motivo del rechazo</label>
@@ -118,7 +152,7 @@ export default function MatriculaDetalleDialog({
             ) : (
               <div className="flex gap-2">
                 <Button disabled={procesando} onClick={() => onValidar(true, null)}>
-                  {procesando ? 'Procesando...' : 'Aprobar'}
+                  {procesando ? 'Procesando...' : 'Aprobar matricula'}
                 </Button>
                 <Button variant="destructive" disabled={procesando} onClick={() => setRechazando(true)}>
                   Rechazar
@@ -128,42 +162,13 @@ export default function MatriculaDetalleDialog({
           </div>
         )}
 
-        {!cargando && detalle?.estado === 'VALIDADA' && (
-          <RegistrarPagoForm procesando={procesando} onRegistrar={onRegistrarPago} />
-        )}
-
-        {!cargando && (detalle?.estado === 'PAGADA' || detalle?.estado === 'MATRICULADO') && (
-          <div className="mt-5 border-t pt-4 space-y-3">
-            {pago && (
-              <div>
-                <p className="text-sm font-medium text-neutral-700">Pago registrado</p>
-                <div className="text-sm text-neutral-600 space-y-1 mt-1">
-                  <p>Monto: S/. {pago.monto}</p>
-                  <p>Recibo: {pago.numeroRecibo}</p>
-                  {pago.metodoPago && <p>Metodo: {pago.metodoPago}</p>}
-                </div>
-                {pago.comprobanteUrl && (
-                  <a href={`${SERVER_ORIGIN}${pago.comprobanteUrl}`} target="_blank" rel="noreferrer" className="block">
-                    <img
-                      src={`${SERVER_ORIGIN}${pago.comprobanteUrl}`}
-                      alt="Comprobante de pago"
-                      className="mt-2 max-h-64 rounded-md border"
-                    />
-                  </a>
-                )}
-              </div>
-            )}
-
+        {!cargando && detalle?.estado === 'MATRICULADO' && (
+          <div className="mt-4 border-t pt-4 space-y-3">
             {detalle?.numeroFicha && (
               <p className="text-sm text-neutral-600">Ficha oficial: {detalle.numeroFicha}</p>
             )}
-
             <Button className="w-full" disabled={procesando} onClick={onDescargarFicha}>
-              {procesando
-                ? 'Generando...'
-                : detalle?.estado === 'MATRICULADO'
-                  ? 'Descargar ficha oficial'
-                  : 'Generar ficha oficial'}
+              {procesando ? 'Generando...' : 'Descargar ficha oficial'}
             </Button>
           </div>
         )}

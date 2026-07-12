@@ -5,8 +5,17 @@ import SeleccionCursosCard from './components/SeleccionCursosCard'
 import SilaboModal from '@/components/SilaboModal'
 
 export default function MatriculaPage() {
-  const { cargando, enviando, descargando, matricula, cursosMatricula, oferta, solicitar, descargarFicha } =
-    useMiMatricula()
+  const {
+    cargando,
+    enviando,
+    descargando,
+    matricula,
+    cursosMatricula,
+    oferta,
+    solicitar,
+    descargarFicha,
+    subirVoucher,
+  } = useMiMatricula()
 
   const [selectedAsignacionId, setSelectedAsignacionId] = useState<number | null>(null)
 
@@ -26,7 +35,9 @@ export default function MatriculaPage() {
             matricula={matricula}
             cursos={cursosMatricula}
             descargando={descargando}
+            enviando={enviando}
             onDescargar={descargarFicha}
+            onSubirVoucher={subirVoucher}
             onVerSilabo={setSelectedAsignacionId}
           />
         ) : (

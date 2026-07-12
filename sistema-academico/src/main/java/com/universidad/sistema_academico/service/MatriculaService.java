@@ -15,8 +15,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MatriculaService {
@@ -159,19 +162,29 @@ public class MatriculaService {
                 .toList();
     }
 
+    /**
+     * El admin valida la solicitud cuando el estudiante ya envio su pago (PAGADA).
+     * Al aprobar, la matricula queda MATRICULADO y se genera el numero de ficha oficial.
+     */
     @Transactional
     public Matricula validar(Usuario admin, Long matriculaId, ValidarMatriculaRequest request) {
         Matricula matricula = matriculaRepository.findById(matriculaId)
                 .orElseThrow(() -> new RuntimeException("La matricula no existe"));
 
-        if (matricula.getEstado() != EstadoMatricula.PENDIENTE) {
-            throw new RuntimeException("La solicitud ya fue procesada");
-        }
-
         if (request.getAprobado()) {
-            matricula.setEstado(EstadoMatricula.VALIDADA);
+            if (matricula.getEstado() != EstadoMatricula.PAGADA) {
+                throw new RuntimeException("Solo se puede aprobar una solicitud con el pago enviado");
+            }
+            matricula.setEstado(EstadoMatricula.MATRICULADO);
             matricula.setObservacion(null);
+            if (matricula.getNumeroFicha() == null) {
+                matricula.setNumeroFicha("FO-" + matricula.getPeriodo().getAnio()
+                        + "-" + String.format("%06d", matricula.getId()));
+            }
         } else {
+            if (matricula.getEstado() != EstadoMatricula.PENDIENTE && matricula.getEstado() != EstadoMatricula.PAGADA) {
+                throw new RuntimeException("La solicitud ya fue procesada");
+            }
             if (request.getObservacion() == null || request.getObservacion().isBlank()) {
                 throw new RuntimeException("Debes indicar el motivo del rechazo");
             }
@@ -185,14 +198,22 @@ public class MatriculaService {
         return matriculaRepository.save(matricula);
     }
 
+    /** El estudiante sube su voucher de pago; su solicitud pasa a PAGADA (pago por validar) */
+    @Transactional
+    public Pago subirVoucher(Usuario usuario, Long matriculaId, BigDecimal monto, String numeroRecibo,
+                             String metodoPago, MultipartFile comprobante) {
+        matriculaDelEstudiante(usuario, matriculaId);
+        return registrarPago(usuario, matriculaId, monto, numeroRecibo, metodoPago, comprobante);
+    }
+
     @Transactional
     public Pago registrarPago(Usuario admin, Long matriculaId, BigDecimal monto, String numeroRecibo,
                               String metodoPago, MultipartFile comprobante) {
         Matricula matricula = matriculaRepository.findById(matriculaId)
                 .orElseThrow(() -> new RuntimeException("La matricula no existe"));
 
-        if (matricula.getEstado() != EstadoMatricula.VALIDADA) {
-            throw new RuntimeException("Solo se puede registrar el pago de una matricula validada");
+        if (matricula.getEstado() != EstadoMatricula.PENDIENTE) {
+            throw new RuntimeException("El pago ya fue enviado o la solicitud no esta pendiente de pago");
         }
 
         if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
@@ -254,8 +275,8 @@ public class MatriculaService {
         Matricula matricula = matriculaRepository.findById(matriculaId)
                 .orElseThrow(() -> new RuntimeException("La matricula no existe"));
 
-        if (matricula.getEstado() != EstadoMatricula.PAGADA && matricula.getEstado() != EstadoMatricula.MATRICULADO) {
-            throw new RuntimeException("Solo se puede generar la ficha oficial de una matricula pagada");
+        if (matricula.getEstado() != EstadoMatricula.MATRICULADO) {
+            throw new RuntimeException("Solo se puede generar la ficha oficial de una matricula aprobada por el administrador");
         }
 
         if (matricula.getNumeroFicha() == null) {
@@ -270,6 +291,46 @@ public class MatriculaService {
     public byte[] fichaOficialPdf(Matricula matricula) {
         Pago pago = pagoRepository.findByMatriculaId(matricula.getId()).orElse(null);
         return fichaPdfService.generarOficial(matricula, cursosDeMatricula(matricula), pago);
+    }
+
+    /** HU: Direccion supervisa estadisticas de matricula del periodo */
+    public Map<String, Object> estadisticas(Integer anio, String semestre) {
+        PeriodoAcademico periodo = (anio != null && semestre != null)
+                ? periodoRepository.findByAnioAndSemestre(anio, semestre)
+                        .orElseThrow(() -> new RuntimeException("El periodo academico no existe"))
+                : periodoActivo();
+
+        List<Matricula> matriculas = matriculaRepository.findAll().stream()
+                .filter(m -> m.getPeriodo().getId().equals(periodo.getId()))
+                .toList();
+
+        Map<String, Long> porEstado = new LinkedHashMap<>();
+        for (EstadoMatricula estado : EstadoMatricula.values()) {
+            porEstado.put(estado.name(), matriculas.stream().filter(m -> m.getEstado() == estado).count());
+        }
+
+        Map<String, List<Matricula>> porEspecialidadMap = matriculas.stream()
+                .collect(Collectors.groupingBy(m -> m.getEstudiante().getEspecialidad().getNombre(),
+                        LinkedHashMap::new, Collectors.toList()));
+
+        List<Map<String, Object>> porEspecialidad = new ArrayList<>();
+        porEspecialidadMap.forEach((nombre, lista) -> {
+            Map<String, Object> fila = new LinkedHashMap<>();
+            fila.put("especialidad", nombre);
+            fila.put("solicitudes", lista.size());
+            fila.put("matriculados", lista.stream().filter(m -> m.getEstado() == EstadoMatricula.MATRICULADO).count());
+            fila.put("pendientes", lista.stream().filter(m -> m.getEstado() == EstadoMatricula.PENDIENTE
+                    || m.getEstado() == EstadoMatricula.PAGADA).count());
+            fila.put("rechazadas", lista.stream().filter(m -> m.getEstado() == EstadoMatricula.RECHAZADA).count());
+            porEspecialidad.add(fila);
+        });
+
+        Map<String, Object> resultado = new LinkedHashMap<>();
+        resultado.put("periodo", periodo.getCodigo());
+        resultado.put("total", matriculas.size());
+        resultado.put("porEstado", porEstado);
+        resultado.put("porEspecialidad", porEspecialidad);
+        return resultado;
     }
 
     private Estudiante buscarEstudiante(Usuario usuario) {

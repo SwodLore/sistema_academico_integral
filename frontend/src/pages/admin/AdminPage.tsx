@@ -7,7 +7,7 @@ import SolicitudesTable from './components/SolicitudesTable'
 import MatriculaDetalleDialog from './components/MatriculaDetalleDialog'
 import SilaboModal from '@/components/SilaboModal'
 
-const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'VALIDADA', 'PAGADA', 'MATRICULADO']
+const ESTADOS_FILTRO: EstadoMatricula[] = ['PENDIENTE', 'PAGADA', 'MATRICULADO', 'RECHAZADA']
 
 export default function AdminPage() {
   const {
