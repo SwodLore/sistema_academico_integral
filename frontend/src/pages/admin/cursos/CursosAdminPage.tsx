@@ -185,13 +185,67 @@ export default function CursosAdminPage() {
                 <p className="text-xs text-neutral-400 mt-1">Intenta seleccionar otra especialidad o crea un nuevo curso</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              {/* Vista en tarjetas para móvil */}
+              <div className="flex flex-col divide-y divide-neutral-200 md:hidden">
+                {cursosFiltrados.map((curso) => (
+                  <div key={curso.id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <span className="font-mono font-bold text-neutral-800 text-xs">{curso.codigo}</span>
+                        <p className="font-semibold text-neutral-900 leading-tight mt-0.5">{curso.nombre}</p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => abrirEditar(curso)}
+                          className="h-8 w-8 p-0 text-neutral-600 hover:text-neutral-900"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => eliminar(curso.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700 border-red-150"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="info" className="font-bold text-[10px]">Ciclo {curso.ciclo}</Badge>
+                      <span className="text-xs text-neutral-500">{curso.creditos} créditos</span>
+                      <span className="text-neutral-300">·</span>
+                      <span className="text-xs text-neutral-500">{curso.horasSemanales} hrs</span>
+                    </div>
+                    <div className="text-xs text-neutral-600">
+                      <span className="font-semibold text-neutral-400 uppercase tracking-wider text-[10px]">Especialidad: </span>
+                      {curso.especialidad.nombre}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      <span className="font-semibold text-neutral-400 uppercase tracking-wider text-[10px]">Prerrequisito: </span>
+                      {curso.prerequisito ? (
+                        <span className="font-mono bg-neutral-100 text-neutral-700 px-1.5 py-0.5 rounded border border-neutral-200">
+                          {curso.prerequisito.codigo}
+                        </span>
+                      ) : (
+                        <span className="text-neutral-400 italic">Ninguno</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tabla para pantallas medianas en adelante */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-neutral-100/70 border-b border-neutral-200 text-neutral-600 text-[11px] font-bold uppercase tracking-wider">
                       <th className="px-6 py-3">Código</th>
                       <th className="px-6 py-3">Nombre</th>
-                      <th className="px-6 py-3">Ciclo</th>
+                      <th className="px-6 py-3 whitespace-nowrap">Ciclo</th>
                       <th className="px-6 py-3 text-center">Créditos</th>
                       <th className="px-6 py-3 text-center">Horas</th>
                       <th className="px-6 py-3">Especialidad</th>
@@ -209,7 +263,7 @@ export default function CursosAdminPage() {
                           {curso.nombre}
                         </td>
                         <td className="px-6 py-4">
-                          <Badge variant="info" className="font-bold text-[10px]">
+                          <Badge variant="info" className="font-bold text-[10px] whitespace-nowrap">
                             Ciclo {curso.ciclo}
                           </Badge>
                         </td>
@@ -256,6 +310,7 @@ export default function CursosAdminPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </CardContent>
         </Card>

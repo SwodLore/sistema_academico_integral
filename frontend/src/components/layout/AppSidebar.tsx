@@ -29,8 +29,8 @@ export default function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'hidden md:flex h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-card',
-          'transition-[width] duration-300 ease-in-out sticky top-0',
+          'hidden md:flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-card',
+          'transition-[width] duration-300 ease-in-out',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -61,7 +61,7 @@ export default function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           )}
         </div>
 
-        <ScrollArea className="flex-1 px-2 py-3">
+        <ScrollArea className="min-h-0 flex-1 px-2 py-3">
           <nav className="flex flex-col gap-1">
             {secciones.map((seccion, i) => (
               <div key={seccion.titulo ?? i} className="flex flex-col gap-1">

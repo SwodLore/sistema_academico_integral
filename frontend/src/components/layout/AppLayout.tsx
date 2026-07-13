@@ -19,12 +19,12 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="flex h-screen overflow-hidden bg-neutral-50">
       <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AppHeader />
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>
