@@ -40,7 +40,7 @@ export function getNavSections(rol: Rol): NavSection[] {
           { to: '/matricula', label: 'Matrícula', icon: BookOpen },
           { to: '/notas', label: 'Mis Notas', icon: Award },
           { to: '/record', label: 'Récord Académico', icon: FileText },
-          { to: '/certificados', label: 'Certificados', icon: LayoutDashboard },
+          { to: '/certificados', label: 'Documentos', icon: FileText },
         ],
       },
     ]

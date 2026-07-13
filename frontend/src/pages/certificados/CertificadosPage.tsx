@@ -77,10 +77,10 @@ export default function CertificadosPage() {
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 tracking-tight flex items-center gap-2">
               <FileText className="w-7 h-7 text-neutral-500" />
-              Certificados y Constancias
+              Mis Documentos
             </h1>
             <p className="text-sm text-neutral-500">
-              Solicita documentos oficiales en línea y descárgalos una vez emitidos.
+              Solicita certificados y constancias oficiales en línea y descárgalos una vez emitidos.
             </p>
           </div>
 

@@ -8,9 +8,13 @@ import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.universidad.sistema_academico.entity.EstadoMatricula;
 import com.universidad.sistema_academico.entity.Estudiante;
 import com.universidad.sistema_academico.entity.SolicitudDocumento;
+import com.universidad.sistema_academico.entity.TipoDocumento;
+import com.universidad.sistema_academico.repository.MatriculaRepository;
 import io.nayuki.qrcodegen.QrCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -23,6 +27,9 @@ import java.util.Locale;
 
 @Service
 public class CertificadoPdfService {
+
+    @Autowired(required = false)
+    private MatriculaRepository matriculaRepository;
 
     private static final Color VERDE_UNCP = new Color(20, 84, 44);
     private static final Color DORADO = new Color(176, 141, 66);
@@ -81,14 +88,7 @@ public class CertificadoPdfService {
             nombre.setSpacingBefore(6);
             documento.add(nombre);
 
-            Paragraph cuerpo = new Paragraph(
-                    "Estudiante con código " + estudiante.getCodigoEstudiante()
-                            + ", DNI N.° " + estudiante.getDni()
-                            + ", de la especialidad de " + especialidad
-                            + ", quien registra su situación académica conforme a los archivos oficiales "
-                            + "de esta casa de estudios. Se expide el presente documento a solicitud del "
-                            + "interesado, para los fines que estime conveniente.",
-                    CUERPO);
+            Paragraph cuerpo = new Paragraph(cuerpoPorTipo(solicitud, estudiante, especialidad), CUERPO);
             cuerpo.setAlignment(Element.ALIGN_CENTER);
             cuerpo.setSpacingBefore(14);
             cuerpo.setLeading(16);
@@ -110,6 +110,50 @@ public class CertificadoPdfService {
         } catch (Exception e) {
             throw new RuntimeException("No se pudo generar el documento en PDF");
         }
+    }
+
+    /** Cuerpo del documento redactado segun el tipo solicitado (cada documento dice algo distinto) */
+    private String cuerpoPorTipo(SolicitudDocumento solicitud, Estudiante estudiante, String especialidad) {
+        String base = "identificado(a) con DNI N.° " + estudiante.getDni()
+                + " y código de estudiante " + estudiante.getCodigoEstudiante()
+                + ", de la especialidad de " + especialidad + ", ";
+
+        TipoDocumento tipo = solicitud.getTipo();
+        return switch (tipo) {
+            case CONSTANCIA_MATRICULA -> base
+                    + "se encuentra MATRICULADO(A) en esta casa de estudios"
+                    + (periodoMatriculado(estudiante) != null
+                        ? " durante el periodo académico " + periodoMatriculado(estudiante) : "")
+                    + ", conforme a los registros oficiales. Se expide la presente CONSTANCIA DE MATRÍCULA "
+                    + "a solicitud del interesado, para los fines que estime convenientes.";
+            case CONSTANCIA_NOTAS -> base
+                    + "ha registrado las calificaciones de las asignaturas cursadas, las mismas que obran "
+                    + "en los archivos académicos de esta institución. Se expide la presente CONSTANCIA DE "
+                    + "NOTAS a solicitud del interesado, para los fines que estime convenientes.";
+            case CONSTANCIA_EGRESADO -> base
+                    + "ostenta la condición de EGRESADO(A), habiendo culminado el plan de estudios "
+                    + "correspondiente a su especialidad conforme a los registros oficiales. Se expide la "
+                    + "presente CONSTANCIA DE EGRESADO a solicitud del interesado, para los fines pertinentes.";
+            case CONSTANCIA_TERCIO_SUPERIOR -> base
+                    + "pertenece al TERCIO SUPERIOR de su promoción, de acuerdo al orden de mérito por "
+                    + "promedio ponderado que obra en los archivos académicos. Se expide la presente "
+                    + "CONSTANCIA DE TERCIO SUPERIOR a solicitud del interesado, para los fines pertinentes.";
+            default -> base
+                    + "ha cursado sus estudios conforme a los registros oficiales de esta casa superior de "
+                    + "estudios. Se expide el presente CERTIFICADO DE ESTUDIOS a solicitud del interesado, "
+                    + "para los fines que estime convenientes.";
+        };
+    }
+
+    /** Ultimo periodo en que el estudiante quedo matriculado (para la constancia de matricula) */
+    private String periodoMatriculado(Estudiante estudiante) {
+        if (matriculaRepository == null) return null;
+        return matriculaRepository
+                .findByEstudianteIdOrderByPeriodoAnioAscPeriodoSemestreAsc(estudiante.getId()).stream()
+                .filter(m -> m.getEstado() == EstadoMatricula.MATRICULADO)
+                .reduce((primero, ultimo) -> ultimo)
+                .map(m -> m.getPeriodo().getCodigo())
+                .orElse(null);
     }
 
     /** Marco doble estilo diploma: borde exterior verde grueso + interior dorado fino */
