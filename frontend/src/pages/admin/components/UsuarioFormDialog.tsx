@@ -143,7 +143,7 @@ export default function UsuarioFormDialog({ abierto, editando, especialidades, f
                 {errores.ciclo && <p className="text-xs text-red-600">{errores.ciclo}</p>}
               </div>
               <div className="space-y-1 col-span-2">
-                <label className="text-xs text-neutral-500">Anio de ingreso</label>
+                <label className="text-xs text-neutral-500">Año de ingreso</label>
                 <input
                   type="number"
                   className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"

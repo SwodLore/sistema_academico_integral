@@ -33,7 +33,7 @@ export function validarUsuario(form: UsuarioRequest): Record<string, string> {
   if (form.rol === 'ESTUDIANTE') {
     if (!form.especialidadId) errores.especialidadId = 'Selecciona la especialidad'
     if (!form.ciclo || form.ciclo < 1 || form.ciclo > 10) errores.ciclo = 'Ciclo entre 1 y 10'
-    if (!form.anioIngreso) errores.anioIngreso = 'Indica el anio de ingreso'
+    if (!form.anioIngreso) errores.anioIngreso = 'Indica el año de ingreso'
   }
   if (form.rol === 'DOCENTE' && !form.facultadId) errores.facultadId = 'Selecciona la facultad'
   return errores

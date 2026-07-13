@@ -11,6 +11,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Component
@@ -99,10 +103,29 @@ public class DataInitializer implements CommandLineRunner {
         Curso ici101 = crearCurso("ICI101", "Dibujo de Ingenieria", 3, 5, 1, ici, null);
         Curso ici102 = crearCurso("ICI102", "Fisica I", 4, 6, 1, ici, null);
 
+        // Cursos adicionales de ciclos 2 y 4 para completar trayectorias academicas
+        Curso isi201 = crearCurso("ISI201", "Programacion Orientada a Objetos", 4, 6, 2, isi, isi101);
+        Curso isi202 = crearCurso("ISI202", "Matematica Discreta", 3, 5, 2, isi, isi102);
+        Curso isi401 = crearCurso("ISI401", "Sistemas Operativos", 4, 6, 4, isi, isi301);
+        Curso isi402 = crearCurso("ISI402", "Analisis y Diseno de Sistemas", 4, 5, 4, isi, isi302);
+        Curso ici201 = crearCurso("ICI201", "Estatica", 4, 6, 2, ici, ici102);
+        Curso ici202 = crearCurso("ICI202", "Topografia", 3, 5, 2, ici, null);
+        Curso ici301 = crearCurso("ICI301", "Resistencia de Materiales", 4, 6, 3, ici, ici201);
+        Curso ici302 = crearCurso("ICI302", "Hidraulica", 4, 6, 3, ici, null);
+        Curso ici401 = crearCurso("ICI401", "Concreto Armado", 4, 6, 4, ici, ici301);
+
         PeriodoAcademico periodoAnterior = crearPeriodo("2024-II", 2024, "II",
                 LocalDate.of(2024, 8, 1), LocalDate.of(2024, 12, 15), false, false);
         PeriodoAcademico periodoActual = crearPeriodo("2025-I", 2025, "I",
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 7, 15), true, true);
+
+        // Periodos historicos para dar profundidad a la evolucion por cohorte
+        PeriodoAcademico p2023I = crearPeriodo("2023-I", 2023, "I",
+                LocalDate.of(2023, 3, 1), LocalDate.of(2023, 7, 15), false, false);
+        PeriodoAcademico p2023II = crearPeriodo("2023-II", 2023, "II",
+                LocalDate.of(2023, 8, 1), LocalDate.of(2023, 12, 15), false, false);
+        PeriodoAcademico p2024I = crearPeriodo("2024-I", 2024, "I",
+                LocalDate.of(2024, 3, 1), LocalDate.of(2024, 7, 15), false, false);
 
         // Periodo anterior (historial de notas)
         AsignacionDocente asigIsi101 = crearAsignacion(isi101, docente1, periodoAnterior, "A", 30);
@@ -157,13 +180,13 @@ public class DataInitializer implements CommandLineRunner {
         DetalleMatricula detHist7Isi101 = crearDetalle(matriculaHist7, asigIsi101);
         DetalleMatricula detHist7Isi102 = crearDetalle(matriculaHist7, asigIsi102);
         DetalleMatricula detAct1Isi301 = crearDetalle(matriculaAct1, asigIsi301);
-        crearDetalle(matriculaAct1, asigIsi302);
-        crearDetalle(matriculaAct3, asigIsi301);
-        crearDetalle(matriculaAct5, asigIsi301);
-        crearDetalle(matriculaAct5, asigIsi302);
-        crearDetalle(matriculaAct7, asigIsi501Act);
-        crearDetalle(matriculaAct7, asigIsi502Act);
-        crearDetalle(matriculaAct8, asigIsi301);
+        crearNotaCompleta(crearDetalle(matriculaAct1, asigIsi302), "15.0", "14.0", "16.0");
+        crearNotaCompleta(crearDetalle(matriculaAct3, asigIsi301), "13.0", "14.0", "15.0");
+        crearNotaCompleta(crearDetalle(matriculaAct5, asigIsi301), "11.0", "10.0", "12.0");
+        crearNotaCompleta(crearDetalle(matriculaAct5, asigIsi302), "16.0", "15.0", "17.0");
+        crearNotaCompleta(crearDetalle(matriculaAct7, asigIsi501Act), "17.0", "18.0", "16.0");
+        crearNotaCompleta(crearDetalle(matriculaAct7, asigIsi502Act), "12.0", "09.0", "10.0");
+        crearNotaCompleta(crearDetalle(matriculaAct8, asigIsi301), "14.0", "13.0", "15.0");
         // ocupa el unico cupo de ISI102 (ciclo 1) -> estudiante4 lo vera "sin vacantes"
         crearDetalle(matriculaAct2, asigIsi102Act);
 
@@ -184,6 +207,35 @@ public class DataInitializer implements CommandLineRunner {
         crearLog(admin, "auth", "LOGIN", "Inicio de sesion", "EXITO");
         crearLog(admin, "usuarios", "POST /api/admin/usuarios", "Carga inicial de datos", "EXITO");
         crearLog(admin, "periodos", "POST /api/admin/periodos", "Apertura del periodo 2025-I", "EXITO");
+
+        // ==== Cohortes con historial multi-periodo (alimenta indicadores, reportes y cohortes) ====
+        java.util.Random rnd = new java.util.Random(2025);
+        List<Docente> docsIsi = List.of(docente1, docente2, docente4);
+        List<Docente> docsIci = List.of(docente3);
+
+        // ISI - cohorte 2023: trayectoria completa (ciclos 1 a 5), todos activos en 2025-I
+        sembrarCohorte(isi, 2023, 5, 4, List.of(
+                new Etapa(p2023I, List.of(isi101, isi102)),
+                new Etapa(p2023II, List.of(isi201, isi202)),
+                new Etapa(p2024I, List.of(isi301, isi302)),
+                new Etapa(periodoAnterior, List.of(isi401, isi402)),
+                new Etapa(periodoActual, List.of(isi501, isi502))
+        ), 0, admin, docsIsi, rnd);
+
+        // ISI - cohorte 2024: ciclos 1 a 3, uno abandona (inactivo)
+        sembrarCohorte(isi, 2024, 3, 4, List.of(
+                new Etapa(p2024I, List.of(isi101, isi102)),
+                new Etapa(periodoAnterior, List.of(isi201, isi202)),
+                new Etapa(periodoActual, List.of(isi301, isi302))
+        ), 1, admin, docsIsi, rnd);
+
+        // ICI - cohorte 2023: ciclos 1 a 4, uno abandona (inactivo)
+        sembrarCohorte(ici, 2023, 4, 3, List.of(
+                new Etapa(p2023I, List.of(ici101, ici102)),
+                new Etapa(p2023II, List.of(ici201, ici202)),
+                new Etapa(p2024I, List.of(ici301, ici302)),
+                new Etapa(periodoActual, List.of(ici401))
+        ), 1, admin, docsIci, rnd);
 
         System.out.println("Datos de prueba creados correctamente.");
         System.out.println("Usuarios de prueba (password 123456):");
@@ -380,5 +432,96 @@ public class DataInitializer implements CommandLineRunner {
         nota.setParcial1(new BigDecimal(parcial1));
         nota.setEstado(EstadoNota.PENDIENTE);
         notaRepository.save(nota);
+    }
+
+    // ==== Apoyo para sembrar cohortes con historial multi-periodo ====
+
+    // Reutiliza una unica asignacion (seccion "B") por curso+periodo para no violar la
+    // restriccion unica (curso, periodo, seccion) ni chocar con las asignaciones "A" ya creadas.
+    private final Map<String, AsignacionDocente> asigCache = new HashMap<>();
+    private int estSeq = 100;
+    private int fichaSeq = 1;
+
+    private static final String[] NOMBRES = {
+            "Andrea", "Bruno", "Camila", "David", "Erika", "Fabio", "Gabriela", "Hugo",
+            "Irene", "Jorge", "Karla", "Milagros", "Nestor", "Olga", "Paolo", "Rocio"
+    };
+    private static final String[] APELLIDOS = {
+            "Aguirre Leon", "Bautista Rojas", "Cardenas Silva", "Delgado Nunez",
+            "Espinoza Vera", "Fernandez Cruz", "Gonzales Paz", "Herrera Lima",
+            "Ibarra Sosa", "Jimenez Ruiz", "Mendoza Rios", "Navarro Diaz",
+            "Ochoa Prado", "Ponce Vidal", "Ramos Salas", "Sanchez Melo"
+    };
+
+    /** Etapa de una trayectoria: en un periodo el estudiante lleva un conjunto de cursos. */
+    private static class Etapa {
+        final PeriodoAcademico periodo;
+        final List<Curso> cursos;
+
+        Etapa(PeriodoAcademico periodo, List<Curso> cursos) {
+            this.periodo = periodo;
+            this.cursos = cursos;
+        }
+    }
+
+    /**
+     * Crea {@code cantidad} estudiantes de una cohorte (misma especialidad y año de ingreso)
+     * y los hace avanzar por la trayectoria dada, calificando cada curso. Los primeros
+     * {@code inactivos} estudiantes no llegan al ultimo periodo (para bajar la retencion).
+     */
+    private void sembrarCohorte(Especialidad esp, int anioIngreso, int cicloActual, int cantidad,
+                                List<Etapa> trayectoria, int inactivos, Usuario admin,
+                                List<Docente> docentes, Random rnd) {
+        for (int s = 0; s < cantidad; s++) {
+            Estudiante est = nuevoEstudianteAuto(esp, cicloActual, anioIngreso);
+            int etapas = (s < inactivos) ? Math.max(1, trayectoria.size() - 1) : trayectoria.size();
+            for (int e = 0; e < etapas; e++) {
+                Etapa etapa = trayectoria.get(e);
+                matricularConNotas(est, etapa.periodo, admin, rnd, etapa.cursos, docentes);
+            }
+        }
+    }
+
+    private Estudiante nuevoEstudianteAuto(Especialidad esp, int ciclo, int anioIngreso) {
+        int n = estSeq++;
+        String nombres = NOMBRES[n % NOMBRES.length];
+        String apellidos = APELLIDOS[(n + 3) % APELLIDOS.length];
+        String codigo = "EST" + anioIngreso + String.format("%03d", n);
+        String dni = String.valueOf(70000000 + n);
+        String email = "est" + n + "@test.com";
+        return crearEstudiante(nombres, apellidos, email, codigo, dni, esp, ciclo, anioIngreso);
+    }
+
+    private void matricularConNotas(Estudiante est, PeriodoAcademico periodo, Usuario admin,
+                                    Random rnd, List<Curso> cursos, List<Docente> docentes) {
+        Matricula m = crearMatricula(est, periodo, EstadoMatricula.MATRICULADO, siguienteFicha(periodo), admin);
+        int i = 0;
+        for (Curso c : cursos) {
+            Docente d = docentes.get(i % docentes.size());
+            crearNotaAleatoria(crearDetalle(m, asignacionDe(c, periodo, d)), rnd);
+            i++;
+        }
+    }
+
+    private AsignacionDocente asignacionDe(Curso curso, PeriodoAcademico periodo, Docente docente) {
+        String key = curso.getId() + "-" + periodo.getId();
+        return asigCache.computeIfAbsent(key, k -> crearAsignacion(curso, docente, periodo, "B", 40));
+    }
+
+    private String siguienteFicha(PeriodoAcademico periodo) {
+        return periodo.getCodigo() + "-G" + String.format("%03d", fichaSeq++);
+    }
+
+    // Genera tres notas cercanas a una base para que haya mezcla realista de aprobados/desaprobados.
+    private void crearNotaAleatoria(DetalleMatricula detalle, Random rnd) {
+        int base = 8 + rnd.nextInt(10); // 8..17
+        crearNotaCompleta(detalle,
+                acotar(base + rnd.nextInt(5) - 2) + ".0",
+                acotar(base + rnd.nextInt(5) - 2) + ".0",
+                acotar(base + rnd.nextInt(5) - 2) + ".0");
+    }
+
+    private String acotar(int n) {
+        return String.valueOf(Math.max(2, Math.min(20, n)));
     }
 }
