@@ -12,6 +12,8 @@ import { useIndicadores } from '@/hooks/useIndicadores'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart3, TrendingUp } from 'lucide-react'
 import type { IndicadorEspecialidad } from '@/types'
+import { exportarApi } from '@/api/exportar'
+import BotonesExportar from '@/components/BotonesExportar'
 
 const COLOR_PROMEDIO = '#2563eb' // blue-600
 const COLOR_APROBACION = '#16a34a' // green-600
@@ -82,6 +84,16 @@ export default function IndicadoresPage() {
                 <option key={s} value={s}>Semestre {s}</option>
               ))}
             </select>
+            <BotonesExportar
+              nombre={`indicadores_${indicadores?.periodo ?? ''}`}
+              disabled={!indicadores}
+              exportar={(formato) =>
+                exportarApi.indicadores(formato, {
+                  anio: anio === '' ? undefined : Number(anio),
+                  semestre: semestre || undefined,
+                })
+              }
+            />
           </div>
         </div>
 

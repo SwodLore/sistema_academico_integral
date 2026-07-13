@@ -5,6 +5,8 @@ import { catalogosApi, periodosApi } from '@/api'
 import { cursosApi, type CumplimientoPlan } from '@/api/cursos'
 import { getApiError } from '@/lib/apiError'
 import type { Especialidad, PeriodoAcademico } from '@/types'
+import { exportarApi } from '@/api/exportar'
+import BotonesExportar from '@/components/BotonesExportar'
 import { Check, ListChecks, X } from 'lucide-react'
 
 function Marca({ ok }: { ok: boolean }) {
@@ -106,6 +108,17 @@ export default function CumplimientoPlanPage() {
                 <option key={p.id} value={p.codigo}>{p.codigo}</option>
               ))}
             </select>
+            <BotonesExportar
+              nombre={`cumplimiento_${datos?.periodo ?? ''}`}
+              disabled={!datos || !especialidadId}
+              exportar={(formato) => {
+                const periodo = periodos.find((p) => p.codigo === periodoSel)
+                return exportarApi.cumplimiento(formato, {
+                  especialidadId,
+                  ...(periodo ? { anio: periodo.anio, semestre: periodo.semestre } : {}),
+                })
+              }}
+            />
           </div>
         </div>
 

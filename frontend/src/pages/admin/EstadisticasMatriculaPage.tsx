@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { matriculasApi, periodosApi } from '@/api'
 import { getApiError } from '@/lib/apiError'
 import type { EstadisticasMatricula, PeriodoAcademico } from '@/types'
+import { exportarApi } from '@/api/exportar'
+import BotonesExportar from '@/components/BotonesExportar'
 import { PieChart } from 'lucide-react'
 
 export default function EstadisticasMatriculaPage() {
@@ -67,6 +69,14 @@ export default function EstadisticasMatriculaPage() {
               <option key={p.id} value={p.codigo}>{p.codigo}</option>
             ))}
           </select>
+          <BotonesExportar
+            nombre={`matricula_${datos?.periodo ?? ''}`}
+            disabled={!datos}
+            exportar={(formato) => {
+              const periodo = periodos.find((p) => p.codigo === periodoSel)
+              return exportarApi.matricula(formato, periodo ? { anio: periodo.anio, semestre: periodo.semestre } : {})
+            }}
+          />
         </div>
 
         {cargando ? (

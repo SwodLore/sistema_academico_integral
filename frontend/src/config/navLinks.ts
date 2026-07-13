@@ -6,6 +6,7 @@ import {
   PieChart,
   Calendar,
   CalendarDays,
+  CalendarRange,
   ClipboardCheck,
   ClipboardList,
   Clock,
@@ -80,6 +81,10 @@ export function getNavSections(rol: Rol): NavSection[] {
           { to: '/admin/asignaciones', label: 'Asignar Docentes', icon: Calendar },
           { to: '/admin/horarios', label: 'Horarios', icon: Clock },
           { to: '/admin/carga-docente', label: 'Carga Docente', icon: UserCheck },
+          // Los periodos los administra el admin (define activo y abre/cierra matrícula)
+          ...(rol === 'ADMINISTRADOR'
+            ? [{ to: '/admin/periodos', label: 'Periodos Académicos', icon: CalendarRange }]
+            : []),
         ],
       },
       {
@@ -97,6 +102,10 @@ export function getNavSections(rol: Rol): NavSection[] {
           { to: '/admin/cohortes', label: 'Cohortes', icon: TrendingUp },
           { to: '/admin/estadisticas-matricula', label: 'Estadísticas de Matrícula', icon: PieChart },
           { to: '/admin/cumplimiento-plan', label: 'Cumplimiento del Plan', icon: ListChecks },
+          // Dirección supervisa auditorías desde aquí; el admin la tiene en "Administración y seguridad"
+          ...(rol === 'DIRECCION'
+            ? [{ to: '/admin/auditoria', label: 'Auditoría', icon: ScrollText }]
+            : []),
         ],
       },
     ]

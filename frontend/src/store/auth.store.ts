@@ -17,6 +17,7 @@ interface AuthStore {
   isAuthenticated: boolean
   login: (user: User, token: string) => void
   logout: () => void
+  updateUser: (cambios: Partial<User>) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -29,6 +30,8 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false })
       },
+      updateUser: (cambios) =>
+        set((state) => (state.user ? { user: { ...state.user, ...cambios } } : state)),
     }),
     { name: 'auth' }
   )

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Edit2, Calendar, Clock, MapPin, RefreshCw, AlertCircle, Trash, Plus, Search, CheckCircle2, X } from 'lucide-react'
+import { Edit2, Calendar, Clock, MapPin, RefreshCw, AlertCircle, Trash, Plus, Search, CheckCircle2 } from 'lucide-react'
 import { cursosApi, type AsignacionPayload } from '@/api/cursos'
 import type { AsignacionConHorarios, HorarioSimplificado } from '@/types'
 import { DIA_SEMANA_LABELS, type DiaSemana } from '@/types/horario'
@@ -473,22 +473,11 @@ export default function HorariosAdminPage() {
       {/* Modal 1: Full Schedule/Hours Edit */}
       <Dialog open={modalAbierto} onOpenChange={(open) => !open && !procesando && setModalAbierto(false)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6 bg-white rounded-xl shadow-xl border border-neutral-200">
-          <div className="flex justify-between items-start pb-2 border-b border-neutral-100">
-            <div>
-              <DialogTitle className="text-lg font-bold text-neutral-900">Editar Horario Completo</DialogTitle>
-              <DialogDescription className="text-xs text-neutral-500 mt-0.5">
-                Configura los días, horas y aulas asignadas para este curso. El sistema validará colisiones horarias.
-              </DialogDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setModalAbierto(false)}
-              className="p-1 rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 h-6 w-6"
-              disabled={procesando}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+          <div className="pb-2 border-b border-neutral-100">
+            <DialogTitle className="text-lg font-bold text-neutral-900">Editar Horario Completo</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500 mt-0.5">
+              Configura los días, horas y aulas asignadas para este curso. El sistema validará colisiones horarias.
+            </DialogDescription>
           </div>
 
           {editando && (
@@ -646,22 +635,11 @@ export default function HorariosAdminPage() {
       {/* Modal 2: Quick Classroom Change */}
       <Dialog open={modalAulaAbierto} onOpenChange={(open) => !open && !procesando && setModalAulaAbierto(false)}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-6 bg-white rounded-xl shadow-xl border border-neutral-200">
-          <div className="flex justify-between items-start pb-2 border-b border-neutral-100">
-            <div>
-              <DialogTitle className="text-lg font-bold text-neutral-900">Cambiar Aula de Curso</DialogTitle>
-              <DialogDescription className="text-xs text-neutral-500 mt-0.5">
-                Cambia de forma rápida el aula física de los bloques del curso. Se verificará disponibilidad de las aulas.
-              </DialogDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setModalAulaAbierto(false)}
-              className="p-1 rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 h-6 w-6"
-              disabled={procesando}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+          <div className="pb-2 border-b border-neutral-100">
+            <DialogTitle className="text-lg font-bold text-neutral-900">Cambiar Aula de Curso</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500 mt-0.5">
+              Cambia de forma rápida el aula física de los bloques del curso. Se verificará disponibilidad de las aulas.
+            </DialogDescription>
           </div>
 
           {editando && (

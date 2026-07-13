@@ -27,6 +27,8 @@ import CohortesPage from '@/pages/cohortes/CohortesPage'
 import EstadisticasMatriculaPage from '@/pages/admin/EstadisticasMatriculaPage'
 import CumplimientoPlanPage from '@/pages/admin/CumplimientoPlanPage'
 import DireccionDashboardPage from '@/pages/direccion/DireccionDashboardPage'
+import PerfilPage from '@/pages/perfil/PerfilPage'
+import PeriodosPage from '@/pages/admin/PeriodosPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import NotAuthorizedPage from '@/pages/NotAuthorizedPage'
 
@@ -34,6 +36,11 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/403', element: <NotAuthorizedPage /> },
   { path: '/', element: <HomeRedirect /> },
+
+  {
+    element: <ProtectedRoute />,
+    children: [{ path: '/perfil', element: <PerfilPage /> }],
+  },
 
   {
     element: <ProtectedRoute roles={['ESTUDIANTE']} />,
@@ -69,6 +76,7 @@ const router = createBrowserRouter([
       { path: '/admin/cohortes', element: <CohortesPage /> },
       { path: '/admin/estadisticas-matricula', element: <EstadisticasMatriculaPage /> },
       { path: '/admin/cumplimiento-plan', element: <CumplimientoPlanPage /> },
+      { path: '/admin/auditoria', element: <AuditoriaPage /> },
       { path: '/admin/cursos', element: <CursosAdminPage /> },
       { path: '/admin/asignaciones', element: <AsignacionesDocentesPage /> },
       { path: '/admin/horarios', element: <HorariosAdminPage /> },
@@ -80,7 +88,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/admin/usuarios', element: <UsuariosPage /> },
       { path: '/admin/facultades-especialidades', element: <FacultadesEspecialidadesPage /> },
-      { path: '/admin/auditoria', element: <AuditoriaPage /> },
+      { path: '/admin/periodos', element: <PeriodosPage /> },
     ],
   },
 

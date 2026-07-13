@@ -130,6 +130,16 @@ export default function AppHeader() {
         <Button
           variant="outline"
           size="sm"
+          onClick={() => navigate('/perfil')}
+          className="gap-1.5 text-muted-foreground hover:text-foreground"
+        >
+          <User className="size-4" />
+          <span className="hidden sm:inline">Mi perfil</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleLogout}
           className="gap-1.5 text-muted-foreground hover:text-foreground"
         >
