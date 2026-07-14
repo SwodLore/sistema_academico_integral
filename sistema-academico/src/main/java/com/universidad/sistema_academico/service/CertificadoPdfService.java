@@ -45,7 +45,21 @@ public class CertificadoPdfService {
     private static final Font FIRMA_NOMBRE = new Font(Font.TIMES_ROMAN, 10, Font.BOLD, Color.BLACK);
     private static final Font FIRMA_CARGO = new Font(Font.TIMES_ROMAN, 9, Font.NORMAL, GRIS_TEXTO);
 
+    // Formato vertical (constancias)
+    private static final Font UNIVERSIDAD_CONST = new Font(Font.TIMES_ROMAN, 14, Font.BOLD, VERDE_UNCP);
+    private static final Font CONSTANCIA_TITULO = new Font(Font.TIMES_ROMAN, 18, Font.BOLD, VERDE_UNCP);
+    private static final Font ETIQUETA = new Font(Font.TIMES_ROMAN, 12, Font.BOLD, GRIS_TEXTO);
+
+    /** Elige el formato segun el tipo: el certificado usa el diploma horizontal; el resto, la constancia vertical */
     public byte[] generar(SolicitudDocumento solicitud, String titulo, String urlVerificacion) {
+        if (solicitud.getTipo() == TipoDocumento.CERTIFICADO_ESTUDIOS) {
+            return generarCertificado(solicitud, titulo, urlVerificacion);
+        }
+        return generarConstancia(solicitud, titulo, urlVerificacion);
+    }
+
+    /** Diploma horizontal ornamentado: SOLO para el Certificado de Estudios */
+    private byte[] generarCertificado(SolicitudDocumento solicitud, String titulo, String urlVerificacion) {
         try {
             Document documento = new Document(PageSize.A4.rotate(), 70, 70, 55, 55);
             ByteArrayOutputStream salida = new ByteArrayOutputStream();
@@ -101,6 +115,88 @@ public class CertificadoPdfService {
             Paragraph lugarFecha = new Paragraph("Huancayo, " + fecha.format(formato), FECHA);
             lugarFecha.setAlignment(Element.ALIGN_CENTER);
             lugarFecha.setSpacingBefore(14);
+            documento.add(lugarFecha);
+
+            documento.add(firmas(solicitud));
+
+            documento.close();
+            return salida.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo generar el documento en PDF");
+        }
+    }
+
+    /** Formato vertical tipo oficio: para todas las constancias (matricula, notas, egresado, tercio superior) */
+    private byte[] generarConstancia(SolicitudDocumento solicitud, String titulo, String urlVerificacion) {
+        try {
+            Document documento = new Document(PageSize.A4, 70, 70, 60, 70);
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            PdfWriter writer = PdfWriter.getInstance(documento, salida);
+            documento.open();
+
+            dibujarBordeSimple(writer, documento.getPageSize());
+            dibujarLogo(writer, documento.getPageSize());
+            agregarQr(documento, writer, urlVerificacion, solicitud.getCodigoVerificacion());
+
+            Estudiante estudiante = solicitud.getEstudiante();
+            String nombreEstudiante = estudiante.getUsuario().getNombres() + " "
+                    + estudiante.getUsuario().getApellidos();
+            String especialidad = estudiante.getEspecialidad().getNombre();
+            String facultad = estudiante.getEspecialidad().getFacultad().getNombre();
+
+            // Membrete
+            Paragraph universidad = new Paragraph("UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ", UNIVERSIDAD_CONST);
+            universidad.setAlignment(Element.ALIGN_CENTER);
+            documento.add(universidad);
+
+            Paragraph fac = new Paragraph(facultad.toUpperCase(), FACULTAD);
+            fac.setAlignment(Element.ALIGN_CENTER);
+            documento.add(fac);
+
+            Paragraph sec = new Paragraph("SECRETARÍA ACADÉMICA", FACULTAD);
+            sec.setAlignment(Element.ALIGN_CENTER);
+            sec.setSpacingAfter(6);
+            documento.add(sec);
+
+            documento.add(lineaDecorativa());
+
+            // Titulo
+            Paragraph tituloDoc = new Paragraph(titulo.toUpperCase(), CONSTANCIA_TITULO);
+            tituloDoc.setAlignment(Element.ALIGN_CENTER);
+            tituloDoc.setSpacingBefore(34);
+            tituloDoc.setSpacingAfter(26);
+            documento.add(tituloDoc);
+
+            // Encabezado formal
+            Paragraph intro = new Paragraph(
+                    "El(La) que suscribe, Secretario(a) Académico(a) de la Universidad Nacional del "
+                            + "Centro del Perú,", CUERPO);
+            intro.setAlignment(Element.ALIGN_JUSTIFIED);
+            intro.setLeading(18);
+            documento.add(intro);
+
+            Paragraph haceConstar = new Paragraph("HACE CONSTAR:", ETIQUETA);
+            haceConstar.setSpacingBefore(16);
+            haceConstar.setSpacingAfter(12);
+            documento.add(haceConstar);
+
+            // Cuerpo (texto propio de cada tipo)
+            String texto = "Que, el(la) estudiante " + nombreEstudiante + ", "
+                    + cuerpoPorTipo(solicitud, estudiante, especialidad);
+            Paragraph cuerpo = new Paragraph(texto, CUERPO);
+            cuerpo.setAlignment(Element.ALIGN_JUSTIFIED);
+            cuerpo.setLeading(20);
+            cuerpo.setFirstLineIndent(28);
+            documento.add(cuerpo);
+
+            // Lugar y fecha
+            LocalDate fecha = solicitud.getFechaEmision() != null
+                    ? solicitud.getFechaEmision().toLocalDate()
+                    : LocalDate.now();
+            DateTimeFormatter formato = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale.of("es", "PE"));
+            Paragraph lugarFecha = new Paragraph("Huancayo, " + fecha.format(formato) + ".", FECHA);
+            lugarFecha.setAlignment(Element.ALIGN_RIGHT);
+            lugarFecha.setSpacingBefore(30);
             documento.add(lugarFecha);
 
             documento.add(firmas(solicitud));
@@ -168,6 +264,15 @@ public class CertificadoPdfService {
         cb.setColorStroke(DORADO);
         cb.setLineWidth(1.2f);
         cb.rectangle(33, 33, pagina.getWidth() - 66, pagina.getHeight() - 66);
+        cb.stroke();
+    }
+
+    /** Borde simple de una sola linea para las constancias (diferente al marco doble del diploma) */
+    private void dibujarBordeSimple(PdfWriter writer, Rectangle pagina) {
+        PdfContentByte cb = writer.getDirectContentUnder();
+        cb.setColorStroke(VERDE_UNCP);
+        cb.setLineWidth(1.5f);
+        cb.rectangle(30, 30, pagina.getWidth() - 60, pagina.getHeight() - 60);
         cb.stroke();
     }
 

@@ -2,12 +2,17 @@ package com.universidad.sistema_academico.config;
 
 import com.universidad.sistema_academico.entity.*;
 import com.universidad.sistema_academico.repository.*;
+import com.universidad.sistema_academico.service.CertificadoPdfService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -52,6 +57,21 @@ public class DataInitializer implements CommandLineRunner {
     private PagoRepository pagoRepository;
     @Autowired
     private LogAuditoriaRepository logAuditoriaRepository;
+    @Autowired
+    private CertificadoPdfService certificadoPdfService;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    private static final Map<TipoDocumento, String> ETIQUETA_DOCUMENTO = Map.of(
+            TipoDocumento.CERTIFICADO_ESTUDIOS, "Certificado de Estudios",
+            TipoDocumento.CONSTANCIA_MATRICULA, "Constancia de Matrícula",
+            TipoDocumento.CONSTANCIA_NOTAS, "Constancia de Notas",
+            TipoDocumento.CONSTANCIA_EGRESADO, "Constancia de Egresado",
+            TipoDocumento.CONSTANCIA_TERCIO_SUPERIOR, "Constancia de Tercio Superior"
+    );
 
     @Override
     public void run(String... args) {
@@ -197,12 +217,23 @@ public class DataInitializer implements CommandLineRunner {
         crearNotaCompleta(detHist7Isi102, "13.0", "14.0", "15.0");
         crearNotaPendiente(detAct1Isi301, "12.0");
 
+        // Solicitudes en distintos estados
         crearSolicitud(estudiante1, TipoDocumento.CERTIFICADO_ESTUDIOS, EstadoSolicitud.PENDIENTE,
                 "Tramite de beca", null);
-        crearSolicitud(estudiante3, TipoDocumento.CONSTANCIA_MATRICULA, EstadoSolicitud.LISTO,
-                "Tramite personal", admin);
         crearSolicitud(estudiante7, TipoDocumento.CONSTANCIA_NOTAS, EstadoSolicitud.EN_PROCESO,
                 "Postulacion a practicas", admin);
+
+        // Un documento EMITIDO de cada tipo, con su PDF real generado (cada uno con contenido distinto)
+        crearSolicitud(estudiante3, TipoDocumento.CONSTANCIA_MATRICULA, EstadoSolicitud.LISTO,
+                "Tramite personal", admin);
+        crearSolicitud(estudiante2, TipoDocumento.CERTIFICADO_ESTUDIOS, EstadoSolicitud.LISTO,
+                "Tramite de bachiller", admin);
+        crearSolicitud(estudiante4, TipoDocumento.CONSTANCIA_NOTAS, EstadoSolicitud.LISTO,
+                "Postulacion laboral", admin);
+        crearSolicitud(estudiante5, TipoDocumento.CONSTANCIA_EGRESADO, EstadoSolicitud.LISTO,
+                "Tramite de titulo", admin);
+        crearSolicitud(estudiante6, TipoDocumento.CONSTANCIA_TERCIO_SUPERIOR, EstadoSolicitud.LISTO,
+                "Postulacion a beca de posgrado", admin);
 
         crearLog(admin, "auth", "LOGIN", "Inicio de sesion", "EXITO");
         crearLog(admin, "usuarios", "POST /api/admin/usuarios", "Carga inicial de datos", "EXITO");
@@ -355,8 +386,30 @@ public class DataInitializer implements CommandLineRunner {
             solicitud.setEmitidaPor(autorizadaPor);
             solicitud.setFechaEmision(LocalDateTime.now().minusDays(1));
             solicitud.setCodigoVerificacion(UUID.randomUUID().toString());
+            emitirPdf(solicitud);
         }
         solicitudDocumentoRepository.save(solicitud);
+    }
+
+    /** Genera el PDF real del documento emitido (mismo flujo que el controller) y lo enlaza a la solicitud */
+    private void emitirPdf(SolicitudDocumento solicitud) {
+        try {
+            Path dirPath = Paths.get(uploadDir, "certificados");
+            Files.createDirectories(dirPath);
+            String filename = "constancia_seed_" + solicitud.getTipo() + "_"
+                    + System.currentTimeMillis() + ".pdf";
+            Path filePath = dirPath.resolve(filename);
+
+            String label = ETIQUETA_DOCUMENTO.getOrDefault(solicitud.getTipo(), "Constancia Académica");
+            String urlVerificacion = baseUrl + "/api/solicitudes-documento/verificar/"
+                    + solicitud.getCodigoVerificacion();
+
+            byte[] pdfBytes = certificadoPdfService.generar(solicitud, label, urlVerificacion);
+            Files.write(filePath, pdfBytes);
+            solicitud.setDocumentoUrl("/uploads/certificados/" + filename);
+        } catch (Exception e) {
+            System.err.println("No se pudo generar el PDF de la solicitud sembrada: " + e.getMessage());
+        }
     }
 
     private void crearLog(Usuario usuario, String modulo, String accion, String detalle, String resultado) {
