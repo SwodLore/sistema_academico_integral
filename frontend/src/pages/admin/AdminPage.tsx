@@ -14,6 +14,7 @@ export default function AdminPage() {
     cargando,
     filtradas,
     especialidades,
+    conteos,
     filtroEstado,
     setFiltroEstado,
     filtroEspecialidad,
@@ -48,7 +49,9 @@ export default function AdminPage() {
                   onChange={(e) => setFiltroEstado(e.target.value as EstadoMatricula)}
                 >
                   {ESTADOS_FILTRO.map((estado) => (
-                    <option key={estado} value={estado}>{ESTADO_MATRICULA_LABELS[estado]}</option>
+                    <option key={estado} value={estado}>
+                      {ESTADO_MATRICULA_LABELS[estado]} ({conteos[estado]})
+                    </option>
                   ))}
                 </select>
                 <select

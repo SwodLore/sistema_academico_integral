@@ -10,16 +10,18 @@ export function useMatriculasAdmin() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoMatricula>('PENDIENTE')
   const [filtroEspecialidad, setFiltroEspecialidad] = useState('')
 
+  // Traemos todas las matriculas y filtramos en el cliente, asi al subir un voucher
+  // la matricula (que pasa a PAGADA) no "desaparece" y el conteo por estado la muestra.
   const recargar = useCallback(async () => {
     setCargando(true)
     try {
-      setSolicitudes(await matriculasApi.listar({ estado: filtroEstado }))
+      setSolicitudes(await matriculasApi.listar({}))
     } catch (err) {
       toast.error(getApiError(err))
     } finally {
       setCargando(false)
     }
-  }, [filtroEstado])
+  }, [])
 
   useEffect(() => {
     recargar()
@@ -33,15 +35,31 @@ export function useMatriculasAdmin() {
   const filtradas = useMemo(
     () =>
       solicitudes.filter(
-        (s) => !filtroEspecialidad || s.estudiante.especialidad.nombre === filtroEspecialidad
+        (s) =>
+          s.estado === filtroEstado &&
+          (!filtroEspecialidad || s.estudiante.especialidad.nombre === filtroEspecialidad)
       ),
-    [solicitudes, filtroEspecialidad]
+    [solicitudes, filtroEstado, filtroEspecialidad]
   )
+
+  const conteos = useMemo(() => {
+    const base: Record<EstadoMatricula, number> = {
+      PENDIENTE: 0,
+      PAGADA: 0,
+      MATRICULADO: 0,
+      RECHAZADA: 0,
+    }
+    for (const s of solicitudes) {
+      if (s.estado in base) base[s.estado] += 1
+    }
+    return base
+  }, [solicitudes])
 
   return {
     cargando,
     filtradas,
     especialidades,
+    conteos,
     filtroEstado,
     setFiltroEstado,
     filtroEspecialidad,
