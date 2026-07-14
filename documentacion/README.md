@@ -13,6 +13,7 @@ del sistema.
 | 4 | [04-base-de-datos.md](04-base-de-datos.md) | Las 16 tablas, roles y módulos |
 | 5 | [05-metodologia-scrum.md](05-metodologia-scrum.md) | Cómo aplicamos Scrum (historias, sprints, tablero) |
 | 6 | [06-despliegue-y-enlaces.md](06-despliegue-y-enlaces.md) | Despliegue en Render/Vercel y todos los enlaces |
+| 7 | [07-modulos.md](07-modulos.md) | Los módulos del sistema con capturas reales |
 
 ## Enlaces rápidos
 
