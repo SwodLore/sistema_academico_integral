@@ -1,80 +1,68 @@
 # Sistema Académico Integral
 
-Proyecto final del curso Desarrollo de Aplicaciones Web - Semestre IX  
-Universidad Nacional del Centro del Perú - Facultad de Ingeniería de Sistemas
+Plataforma web para la gestión académica universitaria (matrícula, notas, actas, reportes y certificados).
+Proyecto final — Desarrollo de Aplicaciones Web, Semestre IX · UNCP, Facultad de Ingeniería de Sistemas.
 
-## Integrantes
+## 👥 Integrantes
 
 - Poves Martinez Alessandro Piero
 - Sulluchuco Vilcapoma Anyelo Roberto
 - Cruz Cruz Alexander Jhon
 
-## Tecnologías
+## 🔗 Enlaces
 
-- Frontend: React + Vite + TypeScript + TailwindCSS
-- Backend: Java Spring Boot
-- Base de datos: MySQL
+| Recurso | Enlace |
+|---------|--------|
+| 🚀 App desplegada (frontend) | https://sistema-academico-integral.vercel.app |
+| 📘 API / Swagger (backend) | https://sistema-academico-integral.onrender.com/swagger-ui/index.html |
+| 🖥️ Diapositivas (Canva) | https://canva.link/axfecdkeaq766nb |
+| 📄 Documentación (Word) | https://docs.google.com/document/d/1x9VhUe96cSnaVeyvX6eqfPoxFNg5YLiAFp1ZZdvk1E0/edit |
+| 🗂️ Tablero Scrum (GitHub Projects) | https://github.com/users/SwodLore/projects/3 |
+| ✅ Historias de usuario (Issues) | https://github.com/SwodLore/sistema_academico_integral/issues?q=is%3Aissue+state%3Aclosed |
+| 📚 Documentación técnica completa | [documentacion/](documentacion/) |
 
-## Requisitos
+> 📎 Respaldo en PDF (por si los enlaces no cargan): diapositivas en
+> [PRESENTACION.pdf](documentacion/PRESENTACION.pdf) y documentación en
+> [DOCUMENTACION.pdf](documentacion/DOCUMENTACION.pdf).
 
-- Node.js 18+
-- Java 25
-- MySQL 8+
-- Maven (incluido en el proyecto con mvnw)
+## 🛠️ Stack
 
-## Configuración de la base de datos
+- **Frontend:** React 19 + TypeScript + Vite + TailwindCSS
+- **Backend:** Java 25 + Spring Boot (API REST)
+- **Base de datos:** MySQL (ORM Hibernate/JPA)
+- **Seguridad:** JWT
+- **Metodología:** Scrum
 
-Crear la base de datos en MySQL:
+## ▶️ Cómo ejecutar (local)
 
-```sql
-CREATE DATABASE sistema_academico;
-```
-
-Editar el archivo `sistema-academico/src/main/resources/application.properties` con tus credenciales:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/sistema_academico
-spring.datasource.username=tu_usuario
-spring.datasource.password=tu_password
-```
-
-## Ejecutar el backend
+**Backend** (necesita MySQL con una BD `sistema_academico`):
 
 ```bash
 cd sistema-academico
-./mvnw spring-boot:run
+./mvnw spring-boot:run          # http://localhost:8080
 ```
 
-El backend corre en `http://localhost:8080`
-
-## Ejecutar el frontend
+**Frontend:**
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev                     # http://localhost:5173
 ```
 
-El frontend corre en `http://localhost:5173`
+> Al iniciar, el backend recrea las tablas y carga datos de prueba automáticamente
+> (clase `DataInitializer`). No hace falta correr scripts SQL.
 
-## Datos de prueba
+## 🔑 Credenciales de prueba
 
-Cada vez que inicias el backend, se borran todas las tablas y se crean de nuevo desde cero (`spring.jpa.hibernate.ddl-auto=create`), no hace falta correr scripts SQL.
+| Correo | Contraseña | Rol |
+|--------|------------|-----|
+| admin@test.com | `123456` | ADMINISTRADOR |
+| direccion@test.com | `123456` | DIRECCION |
+| docente1@test.com | `123456` | DOCENTE |
+| estudiante1@test.com | `123456` | ESTUDIANTE |
 
-Como las tablas quedan vacias despues de recrearse, en cada arranque se cargan datos de prueba automaticamente: facultades, especialidades, cursos, un periodo academico activo, docentes, estudiantes, matriculas y notas. Esto lo hace la clase `DataInitializer`.
+## 📖 Más información
 
-Ojo: esto significa que cualquier dato que cargues manualmente (desde el frontend o la API) se pierde la proxima vez que reinicies el backend. Es un modo pensado para desarrollo y pruebas, no para produccion.
-
-### Credenciales de prueba
-
-Todas las contrasenas son `123456`.
-
-| Correo | Rol |
-|--------|-----|
-| admin@test.com | ADMINISTRADOR |
-| direccion@test.com | DIRECCION |
-| docente1@test.com | DOCENTE |
-| docente2@test.com | DOCENTE |
-| estudiante1@test.com | ESTUDIANTE |
-| estudiante2@test.com | ESTUDIANTE |
-| estudiante3@test.com | ESTUDIANTE |
+La explicación detallada de arquitectura, backend, frontend, base de datos y
+metodología Scrum está en la carpeta **[documentacion/](documentacion/)**.
