@@ -17,6 +17,12 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Al subir archivos (FormData) hay que quitar el Content-Type json para que
+  // axios/el navegador pongan multipart/form-data con su boundary; de lo contrario
+  // axios serializa el FormData a JSON y se pierde el archivo (voucher, comprobante).
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
   return config
 })
 
