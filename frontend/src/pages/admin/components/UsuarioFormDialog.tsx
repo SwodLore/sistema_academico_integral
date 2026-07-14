@@ -43,7 +43,7 @@ export default function UsuarioFormDialog({ abierto, editando, especialidades, f
     <Dialog open={abierto} onOpenChange={(a) => !a && onCerrar()}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogTitle>{editando ? 'Editar usuario' : 'Nuevo usuario'}</DialogTitle>
-        <DialogDescription>La contrasena inicial es el DNI del usuario.</DialogDescription>
+        <DialogDescription>La contraseña inicial es el DNI del usuario.</DialogDescription>
 
         <div className="mt-4 space-y-3">
           <div className="space-y-1">
